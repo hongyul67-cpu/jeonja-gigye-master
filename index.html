@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>전자 기계 이론 마스터</title>
+<script src="https://hongyul67-cpu.github.io/links/fixorder.js"></script>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   전자 기계 이론 마스터 — 세 가지 화면 언어를 섞어 씀
+
+   ① 제어반(CONTROL PANEL)  · 어두운 조작반. 앱 전체의 껍데기와 스피드 퀴즈·종합시험
+   ② 제도지(DRAWING SHEET)  · 모눈 깔린 밝은 도면. 배우기와 짝 맞추기
+   ③ 신호 흐름(SIGNAL FLOW) · 센서→제어→구동→동작 사슬. 사슬 채우기
+   ══════════════════════════════════════════════════════════════ */
+:root{
+  /* ① 제어반 */
+  --bg:#0b1014; --bg2:#0f161b; --panel:#141d24; --panel2:#1b262e;
+  --edge:#2b3a44; --edge2:#3d4f5b;
+  --ink:#e2ecf1; --ink2:#a2b4bf; --ink3:#6f8290;
+  --lamp:#4ade80; --amber:#fbbf24; --red:#f0655c; --cyan:#5ec8e0;
+  /* ② 제도지 */
+  --sheet:#f7f6f1; --sheetgrid:#d3dad6; --sheetink:#1b2430;
+  --sheetred:#b3401f; --sheetline:#8b94a0; --sheetcell:#fffefa;
+  /* ③ 신호 흐름 */
+  --flowbg:#eef1f4; --flowcard:#ffffff; --flowline:#cbd4dc; --flowink:#1f2b36;
+  --f-in:#0e8a7d; --f-ctl:#33415c; --f-act:#e2711d; --f-mec:#6b7280;
+  --mono:"D2Coding","IBM Plex Mono",ui-monospace,"Consolas",monospace;
+  --r:10px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Pretendard","Malgun Gothic",system-ui,-apple-system,sans-serif;
+  line-height:1.62; font-size:16px;
+  background-image:radial-gradient(900px 500px at 50% -14%,#16222b 0%,var(--bg) 62%);
+  background-attachment:fixed;
+  padding-bottom:80px;
+}
+button{font-family:inherit;cursor:pointer;border:none;color:inherit;font-size:1rem}
+h1,h2,h3,h4,p,ul,ol,dl,dd,dt{margin:0}
+ul,ol{padding-left:1.15em}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px}
+.hide{display:none !important}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* ── 조작반 상단 베젤 ─────────────────────────────────── */
+.bezel{
+  position:sticky;top:0;z-index:40;
+  background:linear-gradient(#1d2830,#111a20);
+  border-bottom:1px solid var(--edge);
+  box-shadow:0 2px 10px rgba(0,0,0,.4)
+}
+.bezel .in{max-width:860px;margin:0 auto;padding:9px 16px;display:flex;align-items:center;gap:9px}
+.lamp{width:9px;height:9px;border-radius:50%;background:#26333c;box-shadow:inset 0 0 0 1px #3b4952;flex:none;transition:.25s}
+.lamp.on{background:var(--lamp);box-shadow:0 0 8px rgba(74,222,128,.65),inset 0 0 0 1px #7ef0ad}
+.lamp.amber{background:var(--amber);box-shadow:0 0 8px rgba(251,191,36,.6),inset 0 0 0 1px #ffd569}
+.bezel .plate{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.2em;color:#8399a6;
+  text-transform:uppercase;margin-left:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.bezel .pts{
+  margin-left:auto;font-family:var(--mono);font-size:.76rem;font-weight:700;color:var(--amber);
+  background:#0a1014;border:1px solid var(--edge);border-radius:3px;padding:4px 10px;white-space:nowrap
+}
+
+/* ── 홈 ───────────────────────────────────────────────── */
+.hero{padding:30px 0 6px}
+.hero .kicker{font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;color:var(--amber);text-transform:uppercase;margin-bottom:10px}
+.hero h1{font-size:1.95rem;font-weight:800;letter-spacing:-.02em;line-height:1.2}
+.hero p{color:var(--ink2);font-size:.95rem;margin-top:9px;max-width:56ch}
+.gauges{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:18px 0 4px}
+.gauge{background:var(--panel);border:1px solid var(--edge);border-radius:6px;padding:10px 12px}
+.gauge dt{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;color:var(--ink3);text-transform:uppercase}
+.gauge dd{font-family:var(--mono);font-size:1.16rem;font-weight:700;margin-top:3px;color:var(--ink)}
+.gauge dd small{font-size:.7rem;color:var(--ink3);font-weight:400}
+
+.menu{display:grid;gap:10px;margin-top:22px}
+@media(min-width:640px){.menu{grid-template-columns:1fr 1fr}}
+.mbtn{
+  background:linear-gradient(#1a242c,#121a20);border:1px solid var(--edge);border-top-color:var(--edge2);
+  border-radius:var(--r);padding:16px 17px;text-align:left;display:flex;gap:13px;align-items:flex-start;
+  transition:.14s;position:relative;overflow:hidden
+}
+.mbtn:hover,.mbtn:focus-visible{border-color:var(--edge2);transform:translateY(-1px);outline:none}
+.mbtn:focus-visible{box-shadow:0 0 0 2px var(--cyan)}
+.mbtn .ic{font-size:1.5rem;line-height:1.1;flex:none}
+.mbtn b{display:block;font-size:1.04rem;font-weight:700;margin-bottom:2px}
+.mbtn span{display:block;font-size:.84rem;color:var(--ink2);line-height:1.5}
+.mbtn .badge{
+  position:absolute;right:12px;top:12px;font-family:var(--mono);font-size:.62rem;
+  letter-spacing:.1em;padding:2px 6px;border-radius:3px;border:1px solid currentColor
+}
+.mbtn.w1 .badge{color:var(--cyan)} .mbtn.w2 .badge{color:var(--sheetred)}
+.mbtn.w3 .badge{color:var(--f-in)} .mbtn.w4 .badge{color:var(--amber)}
+.mbtn.exam{border-color:#4a3a20;background:linear-gradient(#241c10,#16110a)}
+.mbtn.exam .badge{color:var(--amber)}
+
+.note{
+  margin-top:20px;background:var(--panel);border:1px solid var(--edge);border-left:3px solid var(--amber);
+  border-radius:0 6px 6px 0;padding:13px 15px;font-size:.86rem;color:var(--ink2)
+}
+.note b{color:var(--ink)}
+.note a{color:var(--cyan)}
+
+/* ── 화면 공통 ─────────────────────────────────────────── */
+.screen{padding-top:18px}
+.crumb{
+  display:flex;align-items:center;gap:9px;margin-bottom:14px;flex-wrap:wrap
+}
+.back{
+  background:var(--panel2);border:1px solid var(--edge);border-radius:5px;
+  padding:7px 12px;font-size:.82rem;font-weight:600;color:var(--ink2)
+}
+.back:hover{border-color:var(--edge2);color:var(--ink)}
+.crumb .ttl{font-weight:700;font-size:1.06rem}
+.crumb .sub{font-family:var(--mono);font-size:.7rem;color:var(--ink3);letter-spacing:.1em;margin-left:auto}
+
+.chips{display:flex;gap:7px;overflow-x:auto;padding:2px 0 10px;margin-bottom:4px;scrollbar-width:thin}
+.chip{
+  white-space:nowrap;background:var(--panel);border:1px solid var(--edge);border-radius:99px;
+  padding:7px 14px;font-size:.83rem;font-weight:600;color:var(--ink3);flex:0 0 auto
+}
+.chip.on{background:var(--panel2);border-color:var(--cyan);color:var(--ink)}
+.chip .u{font-family:var(--mono);font-size:.68rem;opacity:.7;margin-right:5px}
+
+.btn{
+  background:linear-gradient(#243440,#18232b);border:1px solid var(--edge2);border-radius:8px;
+  padding:12px 18px;font-weight:700;font-size:.95rem;color:var(--ink)
+}
+.btn:hover{border-color:var(--cyan)}
+.btn.go{background:linear-gradient(#1d5c42,#14432f);border-color:#2f8a63;color:#e6fff2}
+.btn.warm{background:linear-gradient(#5a3f14,#3d2a0d);border-color:#8a6a2f;color:#fff3dc}
+.btn.ghost{background:var(--panel);border-color:var(--edge);color:var(--ink2);font-weight:600}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+.row .btn{flex:1;min-width:130px}
+
+/* ══ ② 제도지 — 배우기 · 짝 맞추기 ══════════════════════ */
+.sheet{
+  background:var(--sheet);color:var(--sheetink);border:1px solid #b9b6ab;border-radius:4px;
+  background-image:linear-gradient(var(--sheetgrid) .5px,transparent .5px),
+                   linear-gradient(90deg,var(--sheetgrid) .5px,transparent .5px);
+  background-size:20px 20px;background-position:-1px -1px;
+  overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,.32)
+}
+.sheet .pad{padding:20px 20px 16px}
+.sheet .stamp{
+  font-family:var(--mono);font-size:.64rem;letter-spacing:.18em;color:var(--sheetred);
+  text-transform:uppercase;margin-bottom:8px
+}
+.sheet h2{font-size:1.28rem;font-weight:800;letter-spacing:-.01em;line-height:1.3}
+.sheet .lead{font-size:.9rem;color:#4a5764;margin-top:5px}
+.sheet h3{
+  font-size:1rem;font-weight:800;margin:20px 0 8px;padding-bottom:5px;
+  border-bottom:1.5px solid var(--sheetink);display:flex;align-items:baseline;gap:8px
+}
+.sheet h3 .n{font-family:var(--mono);font-size:.72rem;color:var(--sheetred);letter-spacing:.08em}
+.sheet p{font-size:.93rem;margin:0 0 8px}
+.sheet .def{background:var(--sheetcell);border:1px solid var(--sheetink);padding:11px 13px;margin:0 0 10px;font-size:.93rem}
+.sheet .def b{color:var(--sheetred)}
+.sheet ul{margin:0 0 10px;font-size:.92rem}
+.sheet ul li{margin-bottom:4px}
+.sheet .key{
+  background:#fff6d9;border-bottom:1.5px solid var(--sheetred);padding:0 3px;font-weight:700
+}
+.sheet .tw{overflow-x:auto;margin:0 0 12px;border:1px solid var(--sheetink);background:var(--sheetcell)}
+.sheet table{border-collapse:collapse;width:100%;min-width:420px;font-size:.86rem}
+.sheet th,.sheet td{border:1px solid var(--sheetline);padding:7px 10px;text-align:left;vertical-align:top}
+.sheet th{background:#eceae2;font-weight:700;white-space:nowrap;font-size:.8rem}
+.sheet td:first-child{font-weight:600;white-space:nowrap;background:#f4f2ec}
+.sheet .cau{
+  border-left:3px solid var(--sheetred);background:#fdf1ec;padding:9px 12px;font-size:.85rem;margin:0 0 10px
+}
+.sheet .cau b{color:var(--sheetred)}
+.tblock{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));
+  border-top:1.5px solid var(--sheetink);background:var(--sheetcell)
+}
+.tblock > div{padding:7px 11px;border-right:1px solid var(--sheetline)}
+.tblock > div:last-child{border-right:none}
+.tblock dt{font-family:var(--mono);font-size:.56rem;letter-spacing:.14em;color:var(--sheetline);text-transform:uppercase}
+.tblock dd{font-family:var(--mono);font-size:.86rem;font-weight:700;margin-top:1px;font-variant-numeric:tabular-nums}
+
+/* 짝 맞추기(지시선) */
+.mset .pairs{display:grid;gap:8px;margin-top:4px}
+.pr{display:grid;grid-template-columns:1fr 30px 1fr;align-items:stretch;gap:0}
+.pr .cell{
+  background:var(--sheetcell);border:1.5px solid var(--sheetink);padding:9px 11px;
+  font-size:.86rem;font-weight:600;display:flex;align-items:center
+}
+.pr .slot{
+  border:1.5px dashed var(--sheetline);background:transparent;color:var(--sheetline);
+  padding:9px 11px;font-size:.86rem;font-weight:600;display:flex;align-items:center;
+  justify-content:center;text-align:center;width:100%
+}
+.pr .slot.set{border-style:solid;border-color:var(--sheetink);color:var(--sheetink);background:var(--sheetcell)}
+.pr .slot.right{border-color:#1c7d5c;background:#e8f7f0;color:#12503b}
+.pr .slot.wrong{border-color:var(--sheetred);background:#fdece6;color:var(--sheetred)}
+.pr .lead{align-self:center;position:relative;height:1.5px;background:var(--sheetline);margin:0 2px}
+.pr .lead::after{content:"";position:absolute;right:0;top:-3.5px;border:4px solid transparent;border-left-color:var(--sheetline)}
+.pr.filled .lead{background:var(--sheetred)}
+.pr.filled .lead::after{border-left-color:var(--sheetred)}
+.bank{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px;padding-top:12px;border-top:1.5px dashed var(--sheetline)}
+.bchip{
+  background:var(--sheetcell);border:1.5px solid var(--sheetink);border-radius:3px;
+  padding:8px 13px;font-size:.86rem;font-weight:600;color:var(--sheetink)
+}
+.bchip:hover{background:#fff6d9}
+.bchip.used{opacity:.3;pointer-events:none;text-decoration:line-through}
+.bchip.pick{background:#fff6d9;box-shadow:0 0 0 2px var(--sheetred)}
+
+/* ══ ③ 신호 흐름 — 사슬 채우기 ═════════════════════════ */
+.flow{
+  background:var(--flowbg);color:var(--flowink);border:1px solid #cfd6dd;border-radius:12px;
+  padding:18px 16px 16px;box-shadow:0 6px 20px rgba(0,0,0,.28)
+}
+.flow .fh{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px}
+.flow .fh h3{font-size:1.06rem;font-weight:800}
+.flow .fh .cnt{
+  font-family:var(--mono);font-size:.7rem;color:#5c6b78;background:#fff;border:1px solid #d5dce2;
+  border-radius:99px;padding:4px 11px;white-space:nowrap;flex:none
+}
+.flow .scen{font-size:.88rem;color:#4a5a68;margin-bottom:14px}
+/* 사슬은 한 줄로 이어져야 한다. 좁으면 세로로 쌓고, 넓으면 가로 4칸. */
+.chain{display:flex;flex-direction:column;align-items:stretch;gap:0}
+.node{
+  background:var(--flowcard);border:1px solid #d5dce2;border-left:5px solid var(--nc,#6b7280);
+  border-radius:9px;padding:10px 12px;box-shadow:0 1px 3px rgba(20,35,50,.07);width:100%;text-align:left
+}
+.node .role{font-family:var(--mono);font-size:.6rem;letter-spacing:.13em;color:var(--nc);text-transform:uppercase;font-weight:700}
+.node .nm{font-size:.9rem;font-weight:700;margin-top:2px}
+.node.slot{border-left-color:#b8c2cb;background:repeating-linear-gradient(135deg,#fff 0 7px,#f3f6f8 7px 14px)}
+.node.slot .nm{color:#93a1ad}
+.node.slot.pick{box-shadow:0 0 0 2px var(--f-act)}
+.node.ok{border-color:#8fd3c4;border-left-color:var(--f-in);background:#f0fbf8}
+.node.ng{border-color:#f0b6a6;border-left-color:#c0442a;background:#fdf1ed}
+.wire{position:relative;width:2px;height:20px;background:var(--flowline);margin:0 auto;border-radius:2px;flex:none}
+.wire.live{background:#a9dfd6}
+.wire .dot{position:absolute;left:-3px;top:0;width:8px;height:8px;border-radius:50%;background:var(--f-in);animation:flowdotY 2.2s linear infinite}
+@keyframes flowdotY{0%{top:-4px;opacity:0}14%{opacity:1}86%{opacity:1}100%{top:calc(100% - 4px);opacity:0}}
+@media(min-width:660px){
+  .chain{flex-direction:row;align-items:center}
+  .chain .node{flex:1 1 0;min-width:0}
+  .wire{width:auto;flex:0 0 26px;height:2px;margin:0}
+  .wire .dot{left:0;top:-3px;animation-name:flowdotX}
+}
+@keyframes flowdotX{0%{left:-4px;opacity:0}14%{opacity:1}86%{opacity:1}100%{left:calc(100% - 4px);opacity:0}}
+@media(prefers-reduced-motion:reduce){.wire .dot{animation:none;top:calc(50% - 4px);left:-3px}}
+.fbank{display:flex;flex-wrap:wrap;gap:7px;margin-top:15px;padding-top:13px;border-top:1px dashed var(--flowline)}
+.fchip{
+  background:#fff;border:1px solid #d5dce2;border-radius:99px;padding:7px 14px;
+  font-size:.84rem;font-weight:600;color:#33415c
+}
+.fchip:hover{border-color:var(--f-act)}
+.fchip.used{opacity:.32;pointer-events:none;text-decoration:line-through}
+.fchip.pick{border-color:var(--f-act);box-shadow:0 0 0 2px rgba(226,113,29,.35)}
+
+/* ══ ① 제어반 — 스피드 퀴즈 · 종합시험 ═════════════════ */
+.qpanel{
+  background:linear-gradient(#141d24,#101820);border:1px solid var(--edge);border-radius:var(--r);
+  overflow:hidden;box-shadow:inset 0 1px 0 var(--edge2),0 8px 22px rgba(0,0,0,.35)
+}
+.qpanel .top{display:flex;align-items:center;gap:8px;padding:10px 14px;background:linear-gradient(#1d262d,#141c22);border-bottom:1px solid var(--edge)}
+.qpanel .top .tag{font-family:var(--mono);font-size:.66rem;letter-spacing:.16em;color:var(--amber)}
+.qpanel .top .unit{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;color:var(--ink3);margin-left:auto;text-transform:uppercase}
+.qpanel .stage{padding:18px 16px}
+.qtext{font-size:1.06rem;font-weight:700;line-height:1.55;margin-bottom:16px}
+.pbs{display:grid;gap:9px}
+@media(min-width:560px){.pbs.two{grid-template-columns:1fr 1fr}}
+.pb{
+  background:linear-gradient(#212c34,#182127);border:1px solid var(--edge);border-top-color:var(--edge2);
+  border-radius:6px;padding:13px 14px;font-size:.94rem;font-weight:600;color:var(--ink2);
+  text-align:left;display:flex;align-items:center;gap:11px;transition:.12s
+}
+.pb::before{content:"";width:7px;height:7px;border-radius:50%;background:#3b4a55;flex:none;transition:.12s}
+.pb:hover:not(:disabled){border-color:var(--edge2);color:var(--ink)}
+.pb.sel{border-color:var(--cyan);color:var(--ink)}
+.pb.sel::before{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.pb.right{border-color:var(--lamp);color:#eafff3;background:linear-gradient(#1b3a2b,#13291e)}
+.pb.right::before{background:var(--lamp);box-shadow:0 0 7px var(--lamp)}
+.pb.wrong{border-color:var(--red);color:#ffeae8;background:linear-gradient(#3a1d1a,#291413)}
+.pb.wrong::before{background:var(--red);box-shadow:0 0 7px var(--red)}
+.rail{display:flex;align-items:center;gap:4px;padding:11px 14px;border-top:1px solid #1e272e;background:#080d10;flex-wrap:wrap}
+.rail i{width:12px;height:5px;background:#232f37;border-radius:1px;flex:none}
+.rail i.done{background:var(--lamp)} .rail i.miss{background:var(--red)}
+.rail i.now{background:var(--amber)} .rail i.ans{background:var(--cyan)}
+.rail .n{margin-left:auto;font-family:var(--mono);font-size:.7rem;color:var(--ink3);letter-spacing:.08em;white-space:nowrap}
+.explain{
+  margin-top:14px;background:#0d151a;border:1px solid var(--edge);border-left:3px solid var(--cyan);
+  border-radius:0 6px 6px 0;padding:12px 14px;font-size:.88rem;color:var(--ink2)
+}
+.explain b{color:var(--cyan);display:block;margin-bottom:3px;font-size:.78rem;letter-spacing:.06em;font-family:var(--mono)}
+
+/* 결과 */
+.result{background:var(--panel);border:1px solid var(--edge);border-radius:var(--r);padding:22px 18px;text-align:center}
+.result .big{font-family:var(--mono);font-size:2.6rem;font-weight:700;color:var(--lamp);line-height:1.1}
+.result .big.mid{color:var(--amber)} .result .big.low{color:var(--red)}
+.result .sub{color:var(--ink2);font-size:.9rem;margin-top:6px}
+.wrongbox{margin-top:16px;display:grid;gap:10px}
+.wcard{background:var(--panel);border:1px solid var(--edge);border-left:3px solid var(--red);border-radius:0 8px 8px 0;padding:13px 15px;text-align:left}
+.wcard .qn{font-family:var(--mono);font-size:.68rem;color:var(--ink3);letter-spacing:.1em;margin-bottom:5px}
+.wcard .q{font-weight:700;font-size:.94rem;margin-bottom:8px}
+.wcard .ans{font-size:.87rem;color:var(--ink2);display:grid;gap:3px}
+.wcard .ans .me{color:var(--red)} .wcard .ans .co{color:var(--lamp)}
+.wcard .ex{margin-top:8px;padding-top:8px;border-top:1px solid var(--edge);font-size:.85rem;color:var(--ink3)}
+#submitAnchor{margin-top:16px}
+.empty{text-align:center;color:var(--ink3);padding:28px 14px;font-size:.9rem}
+
+/* 배우기 목록 */
+.tlist{display:grid;gap:8px}
+@media(min-width:640px){.tlist{grid-template-columns:1fr 1fr}}
+.titem{
+  background:var(--panel);border:1px solid var(--edge);border-radius:8px;padding:13px 15px;
+  text-align:left;display:flex;gap:12px;align-items:center;transition:.12s
+}
+.titem:hover{border-color:var(--edge2);transform:translateY(-1px)}
+.titem .no{font-family:var(--mono);font-size:.78rem;font-weight:700;color:var(--amber);flex:none;
+  border:1px solid var(--edge2);border-radius:4px;padding:4px 7px;min-width:34px;text-align:center}
+.titem b{display:block;font-size:.96rem;font-weight:700}
+.titem span{display:block;font-size:.78rem;color:var(--ink3);margin-top:1px}
+.titem.read .no{color:var(--lamp);border-color:#2f6b4e}
+
+#toast{
+  position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(14px);
+  background:var(--panel2);border:1px solid var(--edge2);border-radius:8px;padding:11px 18px;
+  font-size:.88rem;font-weight:600;opacity:0;pointer-events:none;transition:.22s;z-index:90;
+  max-width:88vw;text-align:center
+}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+footer{max-width:860px;margin:34px auto 0;padding:14px 16px 0;border-top:1px solid var(--edge);
+  font-family:var(--mono);font-size:.68rem;color:var(--ink3);letter-spacing:.03em;line-height:1.7}
+</style>
+</head>
+<body>
+
+<div class="bezel"><div class="in">
+  <span class="lamp on" id="lamp1"></span><span class="lamp" id="lamp2"></span><span class="lamp" id="lamp3"></span>
+  <span class="plate" id="plate">전자 기계 이론</span>
+  <span class="pts" id="pts">0 P</span>
+</div></div>
+
+<!-- ══════════ 홈 ══════════ -->
+<main id="home" class="wrap screen">
+  <div class="hero">
+    <p class="kicker">MECHATRONICS · 5개 단원</p>
+    <h1>전자 기계 이론 마스터</h1>
+    <p>센서가 느끼고, 제어 장치가 판단하고, 액추에이터가 움직이고, 기계와 기구가 일을 합니다. 이 네 덩어리를 배우고 · 이어 보고 · 시험까지 봅니다.</p>
+  </div>
+
+  <dl class="gauges">
+    <div class="gauge"><dt>배우기</dt><dd id="gLearn">0<small>/13</small></dd></div>
+    <div class="gauge"><dt>사슬</dt><dd id="gChain">0<small>/6</small></dd></div>
+    <div class="gauge"><dt>짝 맞추기</dt><dd id="gSheet">0<small>/6</small></dd></div>
+    <div class="gauge"><dt>최고 점수</dt><dd id="gBest">–<small>점</small></dd></div>
+  </dl>
+
+  <div class="menu">
+    <button class="mbtn w2" data-go="learn">
+      <span class="ic">📖</span>
+      <span><b>배우기</b><span>13개 주제를 정답까지 다 보여 줍니다. 여기부터 시작하세요.</span></span>
+      <span class="badge">제도지</span>
+    </button>
+    <button class="mbtn w3" data-go="chain">
+      <span class="ic">🔗</span>
+      <span><b>신호 사슬</b><span>센서 → 제어 → 구동 → 동작. 빈 칸을 채우면 신호가 흐릅니다.</span></span>
+      <span class="badge">신호 흐름</span>
+    </button>
+    <button class="mbtn w2" data-go="sheet">
+      <span class="ic">📐</span>
+      <span><b>짝 맞추기</b><span>커플링·기어·벨트·센서를 지시선으로 잇습니다.</span></span>
+      <span class="badge">제도지</span>
+    </button>
+    <button class="mbtn w1" data-go="speed">
+      <span class="ic">⚡</span>
+      <span><b>스피드 퀴즈</b><span>8문항 연습. 고르는 즉시 정답과 해설이 뜹니다.</span></span>
+      <span class="badge">제어반</span>
+    </button>
+    <button class="mbtn exam" data-go="exam" style="grid-column:1/-1">
+      <span class="ic">🎯</span>
+      <span><b>종합 시험 · 20문항</b><span>푸는 동안 정답을 알려 주지 않습니다. 끝나면 오답노트가 나오고, 결과를 선생님께 제출할 수 있습니다.</span></span>
+      <span class="badge">제어반</span>
+    </button>
+  </div>
+
+  <div class="note">
+    <b>Ⅴ. 제어 장치(릴레이 · PLC · 마이크로프로세서 · 네트워크)</b>는 이 도구에 없습니다.
+    이미 만들어 둔 <a href="https://hongyul67-cpu.github.io/sequence-plc-master/" target="_blank" rel="noopener">시퀀스·PLC 마스터</a>에서 이어서 하세요.
+  </div>
+</main>
+
+<!-- ══════════ 배우기 ══════════ -->
+<main id="learn" class="wrap screen hide">
+  <div class="crumb">
+    <button class="back" data-go="home">← 홈</button>
+    <span class="ttl">배우기</span>
+    <span class="sub" id="learnCount"></span>
+  </div>
+  <div id="learnList" class="tlist"></div>
+</main>
+
+<main id="topic" class="wrap screen hide">
+  <div class="crumb">
+    <button class="back" data-go="learn">← 목록</button>
+    <span class="ttl" id="topicTtl"></span>
+  </div>
+  <div class="sheet" id="topicSheet"></div>
+  <div class="row">
+    <button class="btn ghost" id="tPrev">← 이전 주제</button>
+    <button class="btn go" id="tNext">다음 주제 →</button>
+  </div>
+</main>
+
+<!-- ══════════ 신호 사슬 ══════════ -->
+<main id="chain" class="wrap screen hide">
+  <div class="crumb">
+    <button class="back" data-go="home">← 홈</button>
+    <span class="ttl">신호 사슬</span>
+    <span class="sub" id="chainNo"></span>
+  </div>
+  <div id="chainBox"></div>
+  <div class="row" id="chainRow"></div>
+</main>
+
+<!-- ══════════ 짝 맞추기 ══════════ -->
+<main id="sheet" class="wrap screen hide">
+  <div class="crumb">
+    <button class="back" data-go="home">← 홈</button>
+    <span class="ttl">짝 맞추기</span>
+    <span class="sub" id="sheetNo"></span>
+  </div>
+  <div class="chips" id="sheetTabs"></div>
+  <div id="sheetBox"></div>
+  <div class="row" id="sheetRow"></div>
+</main>
+
+<!-- ══════════ 스피드 퀴즈 · 종합시험 ══════════ -->
+<main id="quiz" class="wrap screen hide">
+  <div class="crumb">
+    <button class="back" id="quizBack">← 홈</button>
+    <span class="ttl" id="quizTtl"></span>
+    <span class="sub" id="quizSub"></span>
+  </div>
+  <div id="quizBox"></div>
+  <div class="row" id="quizRow"></div>
+</main>
+
+<footer class="wrap">
+  전자 기계 이론 마스터 · 교과서 「전자 기계 이론」(김철 외) 차례와 1~12차시 학습지 기준<br>
+  Ⅰ 전자 기계 · Ⅱ 기계 설계 · Ⅲ 센서 · Ⅳ 액추에이터
+</footer>
+
+<div id="toast"></div>
+
+<script src="https://hongyul67-cpu.github.io/links/fx.js"></script>
+<script src="https://hongyul67-cpu.github.io/links/class-mode.js"></script>
+<script src="https://hongyul67-cpu.github.io/links/reset.js"></script>
+<script src="https://hongyul67-cpu.github.io/links/backbar.js"></script>
+<script src="https://hongyul67-cpu.github.io/links/collector.js"
+        data-tool="전자 기계 이론 마스터" data-max-num="35"></script>
+<script src="https://hongyul67-cpu.github.io/links/rank.js" data-tool="전자 기계 이론" data-pace="class"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   데이터
+   ═══════════════════════════════════════════════════════════ */
+var U = {1:'Ⅰ. 전자 기계', 2:'Ⅱ. 기계 설계', 3:'Ⅲ. 센서', 4:'Ⅳ. 액추에이터'};
+
+/* ── 배우기 13주제 ─────────────────────────────────────── */
+var TOPICS = [
+{ u:1, no:'Ⅰ-01', t:'전자 기계의 구성 요소', lead:'사람의 몸에 빗대면 한 번에 정리됩니다.', body:[
+  {h:'전자 기계란', p:'기계의 운동을 뜻하는 <b>메카닉스</b>와 전자 제어 기술을 뜻하는 <b>일렉트로닉스</b>의 합성어. <span class="key">메카트로닉스</span>라고도 합니다.'},
+  {table:{head:['사람','전자 기계','하는 일'],rows:[
+    ['눈·코·입 (감각 기관)','센서','바깥 정보를 감지해 전기 신호로 바꿈'],
+    ['뇌','제어 장치','신호를 처리해 무엇을 할지 판단'],
+    ['근육','액추에이터','동력을 발생시켜 실제로 움직임'],
+    ['뼈·인대','기계와 기구','전달받은 동력으로 일을 수행']]}},
+  {h:'① 센서', def:'외부에서 들어오는 <b>정보</b>를 감지하여 <b>전기</b> 신호로 바꾸어 주는 일종의 감지 장치.',
+   ul:['종류 — 광센서, 근접 센서, 화재 감지 센서, 온도 센서, 압력 센서']},
+  {h:'② 제어 장치', def:'입력 장치와 출력 장치의 <b>중계</b> 역할. 센서로 얻은 전기 신호를 <b>처리</b>하여 <b>액추에이터</b>에 출력 신호를 보냅니다.'},
+  {h:'③ 액추에이터', def:'제어 장치의 출력 신호를 받아 <b>공압·유압·전기</b>를 사용하여 필요한 <b>동작</b>을 수행하는 원동기. 즉 <span class="key">동력을 발생</span>시킵니다.',
+   ul:['종류 — 공압 액추에이터, 유압 액추에이터, 전기(전동식) 액추에이터']},
+  {h:'④ 기계와 기구', def:'액추에이터에서 전달받은 <b>동력</b>으로 필요한 <b>일</b>을 수행. 기구는 운동을 <b>전달</b>하거나 <b>변환</b>하고, 기계는 기구를 활용해 우리가 필요로 하는 <b>일</b>을 실현합니다.',
+   ul:['기구 — 자전거의 체인 전동, 증기 기관의 크랭크, 링크 기구','기계 — 자동차, 공작기계']},
+  {h:'응용 분야 네 가지', table:{head:['약자','원어','뜻'],rows:[
+    ['FA','factory automation','공장 자동화'],
+    ['OA','office automation','사무 자동화'],
+    ['HA','home automation','가정 자동화'],
+    ['LA','laboratory automation','실험실 자동화']]}}
+]},
+
+{ u:1, no:'Ⅰ-02', t:'생산 자동화 시스템', lead:'왜 자동화하는지, 대신 무엇을 잃는지.', body:[
+  {h:'정의', def:'기계와 컴퓨터 <b>기술</b>을 활용하여 <b>제품</b>을 만드는 과정에서 인간의 <b>개입</b>을 최소화하고, 기계가 자동으로 작업을 수행하는 것. 목적은 제품의 <span class="key">품질</span>과 생산 작업의 <span class="key">효율성</span> 향상.'},
+  {h:'장점과 단점', table:{head:['장점','단점'],rows:[
+    ['생산 속도 향상 — 사람보다 빠르고 쉬지 않음','초기 투자 비용 — 설비 도입에 큰 돈이 듦'],
+    ['품질 향상 — 늘 같은 조건이라 불량이 줄어듦','일자리 감소 — 사람이 하던 일이 줄어듦'],
+    ['안전성 확보 — 위험한 작업을 기계가 대신함','기술적 문제 — 고장 해결에 시간과 비용이 듦'],
+    ['인건비 절감 — 필요 인력이 줄어듦','자동화의 한계 — 전 공정 자동화는 매우 어려움']]}},
+  {cau:'단점의 마지막 줄이 중요합니다. 새 자동화 설비를 들여도 <b>그것을 관리하고 전체 작업을 감독할 사람</b>은 아직 필요합니다.'},
+  {h:'생산 자동화의 전자 기계 기술', ul:[
+    '<b>수치 제어 공작 기계</b> — 도면에서 제품의 형상·치수, 가공 순서 및 조건, 공구를 코드값으로 입력하면 그 명령대로 절삭. 예) CNC 선반, 머시닝 센터, CNC 밀링, CNC 조각기',
+    '<b>산업용 로봇</b> — 작업자의 안전과 편의, 생산성 및 품질 향상, 인력난 해소와 인건비 절감을 배경으로 개발',
+    '<b>CAD / CAM</b> — 컴퓨터를 이용한 설계(CAD)와 생산(CAM)',
+    '<b>제어 기술</b> — 작업자의 의도나 계획이 반영되어 작업을 조절할 수 있는 기술']},
+  {h:'자주 나오는 약자', table:{head:['약자','원어','뜻'],rows:[
+    ['FMS','Flexible Manufacturing System','유연 생산 시스템 — 여러 제품을 한 라인에서'],
+    ['FA','Factory Automation','공장 자동화'],
+    ['CIM','Computer Integrated Manufacturing','컴퓨터 통합 생산 — 설계·생산·관리를 하나로'],
+    ['IMS','Intelligent Manufacturing System','지능형 생산 시스템']]}}
+]},
+
+{ u:2, no:'Ⅱ-01', t:'기계와 기구', lead:'둘은 다릅니다. 기구는 일을 하지 않습니다.', body:[
+  {h:'기계', def:'외부의 <b>에너지</b>를 받아, 저항할 수 있는 여러 요소가 조합되어 <b>한정된 운동</b>을 하면서 <span class="key">유용한 일</span>을 하는 것.',
+   ul:['예 — 자동차, 공작기계, 세탁기']},
+  {h:'기구', def:'기계를 이루는 부분으로, 운동을 <b>전달</b>하거나 <b>변환</b>하는 것만을 목적으로 하는 조합. 그 자체로는 <span class="key">일을 하지 않습니다</span>.',
+   ul:['예 — 링크 기구, 캠 기구, 시계 바늘 기구']},
+  {h:'기계가 되기 위한 세 조건', ul:[
+    '저항력이 있는 물체(부품)로 이루어져 있을 것',
+    '각 부분이 <b>한정된 상대 운동</b>을 할 것',
+    '외부의 에너지를 받아 <b>유용한 일</b>을 할 것']},
+  {h:'링크와 조인트', table:{head:['요소','인체로 치면','하는 일'],rows:[
+    ['링크','뼈','운동이나 힘을 전달하는 강체'],
+    ['조인트(짝)','관절','링크를 서로 연결해 직선·회전 운동을 구현']]}},
+  {h:'4절 링크 기구', p:'가장 기본이 되는 기구입니다. <b>고정 링크</b>에 <b>크랭크</b>·<b>연결대(커넥팅 로드)</b>·<b>레버</b>가 이어져 회전 운동을 왕복 운동으로 바꿉니다.'},
+  {cau:'<b>확인해 주세요</b> — 이 주제의 학습지 원본(03차시)이 04차시와 같은 내용으로 덮여 있어, 교과서 42쪽 차례에 맞춰 새로 정리했습니다.'}
+]},
+
+{ u:2, no:'Ⅱ-02', t:'기계 운동의 전달', lead:'무엇을 기준으로 보느냐에 따라 운동의 이름이 달라집니다.', body:[
+  {h:'운동의 다섯 가지', table:{head:['운동','뜻','예'],rows:[
+    ['절대 운동','움직임이 <b>없는</b> 고정된 위치에서 바라보는 운동','땅에 고정된 물체를 기준으로 본 운동'],
+    ['상대 운동','<b>움직이는</b> 특정 물체를 기준으로 바라보는 운동','달리는 기차 안에서 본 옆 기차'],
+    ['평면 운동','한 단면이 항상 <b>같은 평면</b>에서 이동하는 운동','직선·곡선 병진, 회전, 일반 평면 운동'],
+    ['나선 운동','기준 축을 중심으로 <b>회전하면서</b> 축과 평행하게 직선 이동','볼트를 조이는 과정'],
+    ['구면 운동','각 점이 한 <b>고정점</b>에서 같은 거리를 유지하며 이동','원추 마찰차']]}},
+  {cau:'기계 운동의 <b>직선 운동</b>과 <b>회전 운동</b>이 모두 평면 운동에 들어가므로, 기계 운동의 <span class="key">대부분은 평면 운동</span>입니다.'},
+  {h:'스칼라와 벡터', table:{head:['','표현','예'],rows:[
+    ['스칼라','<b>크기</b>만','질량, 길이, 시간, 부피'],
+    ['벡터','<b>크기 + 방향</b>','힘, 변위, 속도, 가속도']]}},
+  {h:'차원과 자유도', table:{head:['차원','움직이는 곳','자유도'],rows:[
+    ['1차원','직선 위','1'],
+    ['2차원','평면 위 — 직선 운동, 회전 운동, 일반 평면 운동','3'],
+    ['3차원','공간 — 우리가 사는 세계','6']]}},
+  {h:'자유도 계산식', def:'<span class="key">F = 3(E − 1) − 2P₁ − 1P₂</span><br>F 자유도 · E 링크의 개수 · P₁ 자유도가 1인 조인트 수 · P₂ 자유도가 2인 조인트 수'},
+  {p:'예) 4절 링크 기구 — 링크 4개, 자유도 1인 조인트 4개 → F = 3(4−1) − 2×4 = 9 − 8 = <b>1</b>. 크랭크 하나만 돌리면 나머지가 따라 움직인다는 뜻입니다.'}
+]},
+
+{ u:2, no:'Ⅱ-03', t:'전동 기구와 연결 기구', lead:'계속 돌 것인가, 끊어 가며 돌 것인가.', body:[
+  {h:'전동 기구', def:'원동기로부터 <b>동력</b>이나 <b>운동</b>을 전달하는 기구. 전동용 기계요소의 조합으로 이루어집니다.'},
+  {h:'연속 운동 기구', p:'원동절이 연속적인 회전 운동을 하면 종동절도 <b>동일하게 연속</b> 운동합니다.',
+   table:{head:['바꾸는 방향','기구'],rows:[
+    ['회전 → 직선','나사 기구, 랙과 피니언'],
+    ['회전 → 회전','기어 전동, 마찰차 전동, 감아걸기 전동(벨트·체인)']]}},
+  {h:'간헐 운동 기구', p:'원동절이 <b>연속</b> 회전 운동을 해도 종동절은 <b>끊어지는</b> 운동을 합니다. 일정한 시간 간격으로 <b>정지</b>와 <b>운동</b>을 되풀이할 때 씁니다.',
+   ul:['캠 기구 · 래칫 기구 · 제네바 기구']},
+  {h:'연결 기구 (축이음)', def:'축과 축을 서로 <b>연결</b>하여 원동축의 <b>동력</b>을 종동축으로 전달하는 기구. <span class="key">축이음</span>이라고도 합니다.'},
+  {h:'커플링 — 늘 붙어 있는 연결', table:{head:['종류','두 축의 관계'],rows:[
+    ['고정 커플링','두 축의 중심이 <b>일직선</b>에 놓이도록 고정'],
+    ['플렉시블 커플링','중심을 정확히 맞추기 어렵거나 <b>진동·충격</b>을 완화할 때'],
+    ['올덤 커플링','두 축이 <b>평행</b>하면서 약간 떨어지거나 어긋난 경우'],
+    ['유니버설 커플링','두 축이 평행하지 않고 <b>한 점에서 교차</b>하는 경우']]}},
+  {cau:'올덤 커플링은 원심력에 의해 추가 <b>하중</b>이 가해져 <span class="key">고속 회전에는 적합하지 않습니다</span>.'},
+  {h:'클러치 — 필요할 때만 붙이는 연결', p:'동력을 전달할 때만 <b>단속적</b>으로 연결하는 축이음.',
+   ul:['맞물림 클러치 · 마찰 클러치 · 유체 클러치 · 전자 클러치']}
+]},
+
+{ u:2, no:'Ⅱ-04', t:'기어', lead:'큰 쪽이 기어, 작은 쪽이 피니언.', body:[
+  {h:'기어란', def:'원주상으로 돌기(이)를 형성한 <b>2개</b> 이상의 회전체가 맞물려서 <b>동력</b>을 전달하는 기계요소. 맞물린 두 기어 중 큰 쪽을 <span class="key">기어</span>, 작은 쪽을 <span class="key">피니언</span>이라고 합니다.'},
+  {h:'특징', ul:[
+    '비교적 <b>가까운 거리</b>의 동력을 전달',
+    '미끄럼이 없어 <b>정확한 속도비</b>로 전달',
+    '두 회전 축이 <b>평행하지 않아도</b> 동력을 전달할 수 있음',
+    '큰 동력을 전달할 수 있고 내구성이 좋음',
+    '소음·진동이 생기고 제작비가 비쌈']},
+  {h:'치형 두 가지', table:{head:['항목','인벌류트 치형','사이클로이드 치형'],rows:[
+    ['조립','<b>쉬움</b> — 중심거리 오차를 허용','어려움 — 중심거리가 정확해야 함'],
+    ['언더컷','발생함','<b>발생하지 않음</b>'],
+    ['가공성','가공이 쉬움','<b>가공이 어려움</b>'],
+    ['소음·진동','상대적으로 큼','작음'],
+    ['용도','일반 동력 전달(기계류)','<b>정밀 기계</b>(시계, 계측기)']]}},
+  {h:'축의 배치로 나눈 기어', table:{head:['두 축이','기어'],rows:[
+    ['평행 (5)','스퍼 기어 · 헬리컬 기어 · 더블 헬리컬(헤링본) 기어 · 내접 기어 · 랙과 피니언'],
+    ['교차 (6)','베벨 기어 · 스파이럴 베벨 기어 · 제롤 베벨 기어 · 크라운 기어 · 마이터 기어 · 앵귤러 베벨 기어'],
+    ['어긋남 (5)','웜 기어 · 하이포이드 기어 · 나사(스크루) 기어 · 헬리컬 크라운 기어 · 페이스 기어']]}},
+  {cau:'크기별 분류(극대형·대형·중형·소형·극소형)는 <b>이끝원 지름</b>을 기준으로 나눕니다. 정확한 수치 구간은 교과서 64쪽 표를 확인하세요.'}
+]},
+
+{ u:2, no:'Ⅱ-05', t:'나사와 캠', lead:'회전을 직선으로 바꾸는 두 가지 방법.', body:[
+  {h:'나사 각부의 명칭', table:{head:['이름','뜻'],rows:[
+    ['나사산','나사의 홈과 홈 사이의 <b>돌출된</b> 부분'],
+    ['나사골','나사에서 <b>오목하게</b> 들어간 홈의 밑부분'],
+    ['피치','서로 인접한 나사산과 나사산 사이의 <b>축 방향 거리</b>'],
+    ['리드','나사가 <b>1회전</b>을 할 때 움직인 직선거리'],
+    ['바깥지름','수나사의 <b>산</b>의 지름 (호칭 지름)'],
+    ['안지름','암나사의 <b>산</b>의 지름'],
+    ['골지름','수나사의 <b>골</b>의 지름 또는 암나사의 <b>골</b>의 지름']]}},
+  {def:'<span class="key">리드 = 줄 수 × 피치</span> — 한 줄 나사면 리드와 피치가 같습니다.'},
+  {h:'나사의 종류', table:{head:['구분','쓰임','종류'],rows:[
+    ['체결용 나사','기계 요소의 결합·조립·고정','삼각(미터) 나사, 유니파이 나사'],
+    ['운동용 나사','회전 운동을 <b>직선</b> 운동으로 바꿔 동력 전달','사각 나사, 사다리꼴 나사, 톱니 나사, 둥근 나사, 볼 나사']]}},
+  {h:'캠', def:'다양한 <b>곡면</b>을 가진 <b>판</b> 또는 <b>입체</b>에 의해 일정한 주기마다 <b>회전 운동</b>을 직선 운동으로 바꿔 주거나, 직선 운동을 <b>회전 운동</b>으로 바꿔 주는 기계요소.'},
+  {table:{head:['구분','종류','특징'],rows:[
+    ['평면 캠','판 캠, 직동 캠, 정면 캠','판 캠은 <b>속도</b>가 빨라지면 <b>종동절</b>이 이탈하는 단점'],
+    ['입체 캠','원통 캠, 경사판 캠, 원뿔 캠, 구면 캠, 단면 캠','차지하는 <b>공간</b>이 작아 <b>소형 기계</b>에 많이 사용']]}}
+]},
+
+{ u:2, no:'Ⅱ-06', t:'벨트 · 체인 · 로프', lead:'감아서 거는 세 가지. 멀어질수록 로프 쪽입니다.', body:[
+  {h:'벨트 전동', def:'<b>풀리</b>(도르래·활차) 즉 홈이 파인 원형의 바퀴에 <b>벨트</b>를 감아 <span class="key">마찰력</span>으로 힘을 전달하는 장치. 제조업에서는 <b>컨베이어</b>에 활용됩니다.'},
+  {cau:'고속 회전하면 <b>진동</b>이 생기기 쉽고, 축 간 거리가 멀면 벨트가 펄럭이는 <b>플래핑</b> 현상이 생깁니다.'},
+  {h:'평벨트 — 바로걸기와 엇걸기', table:{head:['항목','바로걸기','엇걸기'],rows:[
+    ['두 축의 회전 방향','같음','<b>반대</b>'],
+    ['동력 전달','작음','큼 (접촉각이 커서)'],
+    ['마모','적음','많음 (벨트가 꼬여 스침)'],
+    ['속도','고속에 적합','저속에 적합']]}},
+  {p:'평벨트는 <b>직사각형</b> 단면이고 가죽·고무·직물·강철 등으로 만듭니다. 동력은 풀리에 감긴 벨트와 풀리 접촉면의 <b>마찰력</b>으로 전달됩니다.'},
+  {h:'V 벨트', p:'벨트가 풀리에서 <b>이탈</b>하는 것을 막으려고 풀리에 <b>홈</b>을 파고 벨트 단면을 <b>V자(사다리꼴)</b>로 만든 것.',
+   ul:['접촉 면적이 넓어 큰 회전력을 전달','평벨트보다 <b>미끄럼</b>이 적고 벗겨지지 않음','이음매가 없어 조용하고 <b>충격</b>을 완화','지름이 <b>작은</b> 풀리에도 사용 가능','설치 면적이 작아 <b>공간 효율</b>이 우수']},
+  {h:'타이밍 벨트', p:'벨트 안쪽과 풀리에 각각 <b>이(치형)</b>를 만들어 기어처럼 맞물리게 한 벨트. 정확한 <b>속도비</b>로, <b>미끄럼 없이</b> 동력을 전달합니다.'},
+  {h:'체인 전동', def:'<b>스프로킷</b>(체인 기어) 즉 이가 형성된 바퀴에 체인을 감아 힘을 전달. 두 축 사이 거리가 <b>멀어</b> 기어 전동이 어려운 경우에 씁니다.',
+   table:{head:['종류','특징'],rows:[
+    ['롤러 체인','일반적으로 사용. <b>저속</b>부터 <b>고속</b>까지 광범위'],
+    ['사일런트 체인','링크가 스프로킷에 미끄러져 들어가 맞물려 <b>소음</b>이 적고 조용. 주로 고속용이지만 <b>비싸고 무겁다</b>']]}},
+  {h:'로프 전동', def:'로프를 홈이 파인 풀리에 걸어 동력을 전달. V벨트와 비슷하지만 <span class="key">10 m 이상</span>의 먼 거리까지 전달할 수 있습니다.',
+   table:{head:['장점','단점'],rows:[
+    ['벨트보다 큰 동력을 전달','구성이 복잡하고, 운전 중 감아 걸거나 벗길 수 없음'],
+    ['미끄럼이 적음','조정이 어렵고 절단되면 수리가 곤란'],
+    ['상당히 먼 거리까지 전달','미끄럼은 적으나 전동이 불확실'],
+    ['고속 운전에 적합','–'],
+    ['전동 경로가 직선이 아니어도 사용 가능','–']]}}
+]},
+
+{ u:3, no:'Ⅲ-01', t:'센서의 구조와 역할', lead:'센서와 트랜스듀서, 무엇이 다를까요.', body:[
+  {h:'세 낱말 구분', table:{head:['','뜻','한마디로'],rows:[
+    ['센서','입력된 각종 정보를 <b>전기 신호</b>로 변환하는 소자','검출기'],
+    ['트랜스듀서','어떤 형태의 <b>에너지</b>를 다른 형태의 <b>에너지</b>로 변환하는 장치. 센서보다 <b>넓은</b> 의미','변환기'],
+    ['액추에이터','시스템을 실제로 <b>움직이거나 제어</b>하는 기기. 전기·공압·유압으로 작동','구동기']]}},
+  {h:'센서의 구조', p:'센서는 세 부분으로 나눌 수 있습니다.',
+   ul:['검출 대상이 되는 현실 세계의 <b>물리량</b>을 받아들이는 부분','받아들인 <b>신호</b>를 처리하는 부분','처리된 신호를 <b>출력</b>하는 부분']},
+  {h:'오감과 센서 소자', table:{head:['기관','감각','감지 대상','센서 소자'],rows:[
+    ['눈','시각','빛 (밝기·색)','광센서, 포토다이오드, 이미지 센서'],
+    ['귀','청각','소리 (음압)','마이크로폰, 압전 소자'],
+    ['피부','촉각','압력, 온도, 습도','압력 센서, 서미스터, 습도 센서'],
+    ['혀','미각','맛 (이온)','이온 검출 센서, 바이오센서, 전기 화학 센서'],
+    ['코','후각','냄새 (가스)','가스 센서, 반도체 가스 센서'],
+    ['–','오감 밖','가속도·각속도·전파','가속도 센서, 진동 자이로, 레이더, 홀 소자']]}},
+  {h:'센서의 성능 특성 다섯', table:{head:['특성','뜻'],rows:[
+    ['감도','<b>입력</b> 신호의 변화에 따라 <b>출력</b> 신호가 얼마나 변하는지의 비율. 정밀도와 분해능을 결정'],
+    ['분해능','센서가 검출할 수 있는 <b>최소</b> 변화량'],
+    ['선택도','여러 신호원 중 측정하려는 대상에만 <b>선택적</b>으로 반응하는 능력'],
+    ['안정성','조건이 일정하면 출력도 일정해야 함. 시간에 따라 출력이 조금씩 변하는 것을 <b>드리프트</b>라 함'],
+    ['잡음','원하지 <b>않는</b> 신호']]}}
+]},
+
+{ u:3, no:'Ⅲ-02', t:'센서의 종류와 구분', lead:'감지 대상이 물리량이면 물리 센서, 성분이면 화학 센서.', body:[
+  {h:'물리 센서', table:{head:['종류','하는 일'],rows:[
+    ['가속도계','<b>가속도</b>를 계측하는 <b>관성</b> 센서. 물체나 구조물의 운동으로 생긴 가속도를 측정'],
+    ['온도 센서','측정 대상의 <b>온도</b>를 감지하여 전기 신호로 출력'],
+    ['광센서','투광부에서 발사한 <b>빛</b>이 물체에 의해 <b>반사·투과·차단</b>되는 변화를 수광부에서 감지'],
+    ['자기 센서','<b>자기장</b>의 세기와 <b>방향</b>을 측정']]}},
+  {h:'화학 센서', table:{head:['종류','하는 일'],rows:[
+    ['습도 센서','대기 중의 <b>수분</b>을 검출'],
+    ['가스 센서','기체에 포함된 특정 성분의 <b>농도</b>를 감지해 전기 신호로 변환'],
+    ['이온 센서','용액 중 특정 <b>이온</b>에 감응하여 그 농도와 종류에 따른 전기 신호를 냄']]}},
+  {h:'감지 대상과 대표 센서', table:{head:['분류','감지 대상','대표적인 센서'],rows:[
+    ['물리','변위','차동 트랜스, 스트레인 게이지, 콘덴서 변위계'],
+    ['물리','속도·가속도','회전형 속도계, 가속도계(동전형·압전형)'],
+    ['물리','회전각·위치','엔코더, 리졸버, 스트로보스코프'],
+    ['물리','압력','다이어프램, 로드 셀, 수정 압력계'],
+    ['물리','힘·무게','저울, 천칭, 토션 바'],
+    ['물리','온도','열전쌍, 서미스터, 온도계'],
+    ['물리','빛','광도전 셀, 이미지 센서, 포토다이오드'],
+    ['물리','자기','홀 소자, 자기 저항 소자'],
+    ['물리','전류·전압','분류기, 변류기'],
+    ['화학','습도','세라믹 센서, 결로 센서, 고분자막 센서'],
+    ['화학','가스','매연 센서, 반도체 가스 센서, 산소 센서'],
+    ['화학','이온','pH 전극 센서, 이온 선택 전극 센서'],
+    ['화학','생체','바이오센서']]}}
+]},
+
+{ u:3, no:'Ⅲ-03', t:'센서의 활용', lead:'센서를 달면 공장에서 무엇이 달라지는가.', body:[
+  {h:'자동화에서 센서가 하는 여덟 가지', ul:[
+    '시스템의 고장을 <b>자동</b>으로 진단',
+    '고장 발생 <b>위치</b>와 <b>원인</b>을 확인·표시해 <b>유지 보수</b>가 편리',
+    '기계·기구·시스템의 <b>수명</b> 관리와 <b>품질</b> 관리가 쉬워짐',
+    '검출 데이터를 활용한 <b>자동 제어</b>와 <b>최적 운전</b>, <b>에너지 절약</b>',
+    '생산품의 <b>품질 검사</b>가 쉬워짐',
+    '자재·부품·재고 등 <b>물류 관리</b>의 정확성과 신속성이 높아짐',
+    '생산품의 <b>이력 관리</b>와 <b>추적 관리</b>가 쉬워짐',
+    '작업 환경 <b>감시</b>와 <b>안전 관리</b>가 편해지고 자동화됨']},
+  {cau:'센서가 없으면 자동화는 <b>눈을 감고 일하는 것</b>과 같습니다. 고장을 알 수 없고, 품질도 확인할 수 없습니다.'}
+]},
+
+{ u:4, no:'Ⅳ-01', t:'액추에이터', lead:'무엇으로 움직이느냐 — 공기, 기름, 전기.', body:[
+  {h:'액추에이터란', def:'기계적인 작업을 수행하기 위해 <b>공압·유압·전기</b> 등의 에너지를 이용하는 기기.'},
+  {h:'세 가지', table:{head:['종류','어떻게 움직이나'],rows:[
+    ['공압 액추에이터','<b>압축</b> 공기의 에너지를 활용. 제어 신호에 따라 압축 공기를 밀폐된 공간(<b>실린더</b>)으로 보내어 일로 변환'],
+    ['유압 액추에이터','<b>유압 펌프</b>가 압력을 만들어 <b>작동유</b>를 실린더로 보내고, 실린더가 직선 운동하며 일을 수행. 유압 에너지가 <b>기계적 에너지</b>로 바뀜'],
+    ['전동식 액추에이터','<b>전기 에너지</b>를 회전 에너지 등으로 바꿔 기계적인 일을 수행. 힘을 전달하거나 움직임을 제어']]}},
+  {h:'구동 에너지원별 분류', table:{head:['구동원','직선 운동','회전 운동'],rows:[
+    ['공압식','공압 실린더 (단동·복동)','공압 모터, 요동형 액추에이터'],
+    ['유압식','유압 실린더','유압 모터, 요동형 액추에이터'],
+    ['전기식','리니어 모터, 솔레노이드, 전동 실린더','DC 모터, AC 모터, 스텝 모터, 서보 모터']]}}
+]},
+
+{ u:4, no:'Ⅳ-02', t:'공압 장치와 유압 장치', lead:'힘이 필요하면 유압, 빠르고 안전해야 하면 공압.', body:[
+  {h:'공압 장치', table:{head:['장점','단점'],rows:[
+    ['공기는 어디에나 있고 얻기 쉬움','압축성 때문에 <b>정확한 위치·속도 제어</b>가 어려움'],
+    ['압축성이 좋아 <b>저장(축압)</b>이 쉬움','<b>큰 힘</b>을 얻기 어려움'],
+    ['인화·폭발 위험이 없어 <b>화재</b> 염려가 적음','배기할 때 <b>소음</b>이 큼'],
+    ['사용한 공기는 대기로 내보내면 되어 배관이 간단','공기 속 <b>수분(응축수)</b>을 제거해야 함'],
+    ['온도 변화에 둔감하고 <b>동작이 빠름</b>','에너지 <b>효율</b>이 낮음'],
+    ['과부하에도 비교적 안전','–']]}},
+  {h:'유압 장치', table:{head:['장점','단점'],rows:[
+    ['작은 장치로 <b>큰 힘</b>을 얻음','기름이 새면 <b>화재·환경 오염</b> 위험'],
+    ['<b>무단 변속</b>이 가능하고 속도 제어가 정확','온도가 변하면 <b>점도</b>가 변해 성능이 달라짐'],
+    ['과부하 방지가 쉬움','배관이 복잡하고 설비 비용이 큼'],
+    ['진동이 적고 운전이 원활','기름에 <b>공기</b>가 섞이면 작동 불량'],
+    ['<b>윤활</b> 작용을 겸함','소음과 먼지에 민감']]}},
+  {cau:'<b>확인해 주세요</b> — 12차시 학습지에 제목만 있고 내용이 비어 있어, 공압·유압 일반 내용으로 채웠습니다. 수업 때 쓰신 표가 따로 있으면 그것으로 바꾸겠습니다.'}
+]}
+];
+
+/* ── 신호 사슬 6세트 ───────────────────────────────────── */
+var CHAINS = [
+{ t:'자동문', scen:'사람이 다가오면 문이 저절로 열립니다.', u:1,
+  slots:[{role:'입력',a:'적외선 센서',c:'--f-in'},{role:'구동',a:'공압 실린더',c:'--f-act'},{role:'동작',a:'랙과 피니언',c:'--f-mec'}],
+  bank:['적외선 센서','공압 실린더','랙과 피니언','서미스터','유압 펌프','제네바 기구'],
+  why:'사람을 비접촉으로 감지하는 것은 적외선 센서, 문을 밀어 주는 힘은 공압 실린더, 그 직선 운동을 문의 이동으로 바꾸는 것이 랙과 피니언입니다.'},
+{ t:'컨베이어 불량품 분류', scen:'벨트 위를 지나가는 제품 중 불량품만 옆으로 밀어냅니다.', u:3,
+  slots:[{role:'입력',a:'광센서',c:'--f-in'},{role:'구동',a:'공압 실린더',c:'--f-act'},{role:'동작',a:'벨트 전동',c:'--f-mec'}],
+  bank:['광센서','공압 실린더','벨트 전동','가스 센서','유압 모터','웜 기어'],
+  why:'제품의 유무·모양은 빛의 반사로 보는 광센서가 잡고, 밀어내는 것은 공압 실린더, 제품을 실어 나르는 것은 벨트 전동입니다.'},
+{ t:'자동 온도 조절 장치', scen:'설정 온도보다 뜨거워지면 냉각 팬이 돕니다.', u:3,
+  slots:[{role:'입력',a:'서미스터',c:'--f-in'},{role:'구동',a:'DC 모터',c:'--f-act'},{role:'동작',a:'벨트 전동',c:'--f-mec'}],
+  bank:['서미스터','DC 모터','벨트 전동','근접 센서','공압 실린더','래칫 기구'],
+  why:'온도는 서미스터가 저항 변화로 잡고, 팬을 돌리는 것은 DC 모터, 모터의 회전을 팬 축으로 넘기는 것이 벨트 전동입니다.'},
+{ t:'로봇 팔 관절', scen:'정해진 각도만큼 팔을 정확히 회전시킵니다.', u:4,
+  slots:[{role:'입력',a:'엔코더',c:'--f-in'},{role:'구동',a:'서보 모터',c:'--f-act'},{role:'동작',a:'기어 전동',c:'--f-mec'}],
+  bank:['엔코더','서보 모터','기어 전동','습도 센서','솔레노이드','로프 전동'],
+  why:'회전각·위치를 세는 것은 엔코더, 각도를 정확히 맞추는 것은 서보 모터, 힘을 키우고 속도를 줄이는 것은 기어 전동입니다.'},
+{ t:'유압 프레스', scen:'큰 힘으로 금속판을 눌러 성형합니다.', u:4,
+  slots:[{role:'입력',a:'근접 센서',c:'--f-in'},{role:'구동',a:'유압 실린더',c:'--f-act'},{role:'동작',a:'링크 기구',c:'--f-mec'}],
+  bank:['근접 센서','유압 실린더','링크 기구','이온 센서','공압 모터','타이밍 벨트'],
+  why:'금형이 제자리에 왔는지는 근접 센서가 확인하고, 큰 힘은 유압 실린더가 내며, 그 힘의 방향을 바꿔 주는 것이 링크 기구입니다.'},
+{ t:'자동 창문 개폐', scen:'비가 오면 창문이 저절로 닫힙니다.', u:3,
+  slots:[{role:'입력',a:'습도 센서',c:'--f-in'},{role:'구동',a:'스텝 모터',c:'--f-act'},{role:'동작',a:'나사 기구',c:'--f-mec'}],
+  bank:['습도 센서','스텝 모터','나사 기구','압력 센서','유압 실린더','제네바 기구'],
+  why:'빗물·습기는 습도 센서가 감지하고, 정해진 만큼만 돌려야 하니 스텝 모터, 회전을 창의 직선 이동으로 바꾸는 것이 나사 기구입니다.'}
+];
+
+/* ── 짝 맞추기 6세트 ───────────────────────────────────── */
+var MATCH = [
+{ id:'cpl', u:2, t:'커플링', q:'두 축의 관계에 맞는 커플링을 이으시오', hint:'Ⅱ-03 · 연결 기구',
+  pairs:[
+    ['두 축의 중심이 일직선에 놓임','고정 커플링'],
+    ['중심을 맞추기 어렵거나 진동·충격을 완화','플렉시블 커플링'],
+    ['두 축이 평행하면서 약간 어긋남','올덤 커플링'],
+    ['두 축이 한 점에서 교차','유니버설 커플링']],
+  extra:['맞물림 클러치','마찰 클러치']},
+{ id:'gear', u:2, t:'기어의 축 배치', q:'기어를 두 축의 배치에 맞게 이으시오', hint:'Ⅱ-04 · 기어',
+  pairs:[
+    ['두 축이 평행','스퍼 기어'],
+    ['두 축이 교차','베벨 기어'],
+    ['두 축이 어긋남','웜 기어'],
+    ['회전을 직선으로','랙과 피니언']],
+  extra:['하이포이드 기어','헤링본 기어']},
+{ id:'belt', u:2, t:'감아걸기 전동', q:'설명에 맞는 것을 이으시오', hint:'Ⅱ-06 · 벨트·체인·로프',
+  pairs:[
+    ['풀리에 홈을 파고 단면을 V자로 만듦','V 벨트'],
+    ['벨트와 풀리에 이를 내어 맞물림','타이밍 벨트'],
+    ['이가 있는 바퀴에 감아 축간 거리가 멀 때','체인 전동'],
+    ['10 m 이상 먼 거리까지 전달','로프 전동']],
+  extra:['평 벨트','마찰차 전동']},
+{ id:'sensor', u:3, t:'감지 대상과 센서', q:'무엇을 감지하는 센서인지 이으시오', hint:'Ⅲ-02 · 센서의 종류',
+  pairs:[
+    ['온도','서미스터'],
+    ['빛','포토다이오드'],
+    ['자기','홀 소자'],
+    ['회전각·위치','엔코더'],
+    ['가스 농도','반도체 가스 센서']],
+  extra:['로드 셀','pH 전극 센서']},
+{ id:'motion', u:2, t:'기계 운동', q:'설명에 맞는 운동을 이으시오', hint:'Ⅱ-02 · 기계 운동의 전달',
+  pairs:[
+    ['움직임 없는 고정 위치에서 본 운동','절대 운동'],
+    ['움직이는 물체를 기준으로 본 운동','상대 운동'],
+    ['회전하면서 축과 평행하게 직선 이동','나선 운동'],
+    ['각 점이 한 고정점에서 같은 거리 유지','구면 운동']],
+  extra:['평면 운동','병진 운동']},
+{ id:'act', u:4, t:'액추에이터', q:'구동원과 운동에 맞는 액추에이터를 이으시오', hint:'Ⅳ-01 · 액추에이터',
+  pairs:[
+    ['공압 · 직선 운동','공압 실린더'],
+    ['유압 · 회전 운동','유압 모터'],
+    ['전기 · 직선 운동','솔레노이드'],
+    ['전기 · 정밀한 회전','서보 모터']],
+  extra:['공압 모터','유압 실린더']}
+];
+
+/* ── 문항 은행 ─────────────────────────────────────────── */
+var BANK = [
+{u:1,q:'전자 기계에서 사람의 <b>뇌</b>에 해당하는 구성 요소는?',o:['센서','제어 장치','액추에이터','기계와 기구'],a:1,e:'제어 장치는 입력과 출력의 중계 역할을 하며, 센서가 보낸 신호를 처리해 액추에이터에 명령을 내립니다.'},
+{u:1,q:'외부의 정보를 감지하여 <b>전기 신호</b>로 바꾸어 주는 장치는?',o:['액추에이터','제어 장치','센서','기구'],a:2,e:'센서는 사람의 감각 기관(눈·코·입)에 해당하는 감지 장치입니다.'},
+{u:1,q:'제어 장치의 출력 신호를 받아 <b>동력을 발생</b>시키는 것은?',o:['센서','트랜스듀서','액추에이터','링크'],a:2,e:'액추에이터는 공압·유압·전기를 사용해 필요한 동작을 수행하는 원동기로, 사람의 근육에 해당합니다.'},
+{u:1,q:'메카트로닉스(mechatronics)는 어떤 두 낱말의 합성어인가?',o:['머신 + 일렉트릭','메카닉스 + 일렉트로닉스','메카닉스 + 오토메이션','머신 + 컨트롤'],a:1,e:'기계의 운동을 뜻하는 메카닉스와 전자 제어 기술을 뜻하는 일렉트로닉스의 합성어입니다.'},
+{u:1,q:'<b>OA</b>가 뜻하는 자동화 분야는?',o:['공장 자동화','사무 자동화','가정 자동화','실험실 자동화'],a:1,e:'FA 공장, OA 사무, HA 가정, LA 실험실 자동화입니다.'},
+{u:1,q:'생산 자동화 시스템의 목적으로 옳은 것은?',o:['제품의 품질과 생산 작업의 효율성 향상','작업자 수의 무조건적인 증가','수작업 공정의 확대','설비 비용의 최소화'],a:0,e:'인간의 개입을 최소화하고 기계가 자동으로 작업하게 하여 품질과 효율성을 높이는 것이 목적입니다.'},
+{u:1,q:'생산 자동화의 <b>단점</b>이 아닌 것은?',o:['초기 투자 비용이 큼','일자리가 줄어듦','품질이 고르지 못함','고장 해결에 시간과 비용이 듦'],a:2,e:'자동화는 늘 같은 조건으로 작업하므로 오히려 품질이 고르게 향상됩니다.'},
+{u:1,q:'도면의 형상·치수·가공 조건을 코드값으로 입력해 그대로 절삭하는 기계는?',o:['산업용 로봇','수치 제어 공작 기계','컨베이어','3D 스캐너'],a:1,e:'CNC 선반, 머시닝 센터, CNC 밀링 등이 여기에 해당합니다.'},
+{u:1,q:'<b>CIM</b>은 무엇의 약자인가?',o:['유연 생산 시스템','컴퓨터 통합 생산','지능형 생산 시스템','공장 자동화'],a:1,e:'CIM은 Computer Integrated Manufacturing으로, 설계·생산·관리를 하나로 통합합니다.'},
+{u:1,q:'여러 제품을 한 라인에서 유연하게 생산하는 시스템의 약자는?',o:['FMS','CIM','IMS','OA'],a:0,e:'FMS는 Flexible Manufacturing System, 유연 생산 시스템입니다.'},
+
+{u:2,q:'다음 중 <b>기계</b>가 되기 위한 조건이 아닌 것은?',o:['저항력 있는 물체로 구성될 것','각 부분이 한정된 상대 운동을 할 것','외부 에너지를 받아 유용한 일을 할 것','반드시 전기로 움직일 것'],a:3,e:'동력원의 종류는 조건이 아닙니다. 수동으로 움직여도 세 조건을 만족하면 기계입니다.'},
+{u:2,q:'운동을 전달하거나 변환하는 것만을 목적으로 하며, 그 자체로는 일을 하지 않는 것은?',o:['기계','기구','원동기','액추에이터'],a:1,e:'기구는 운동의 전달·변환만 담당하고, 기계는 기구를 활용해 유용한 일을 실현합니다.'},
+{u:2,q:'인체의 <b>관절</b>에 해당하며 링크를 서로 연결하는 요소는?',o:['링크','조인트','크랭크','캠'],a:1,e:'링크가 뼈라면 조인트(짝)는 관절로, 직선·회전 운동을 구현합니다.'},
+{u:2,q:'볼트를 조일 때처럼 회전하면서 축과 평행하게 직선 이동하는 운동은?',o:['평면 운동','구면 운동','나선 운동','상대 운동'],a:2,e:'나선 운동은 회전량에 비례하여 축 방향으로 직선 이동합니다.'},
+{u:2,q:'다음 중 <b>벡터량</b>인 것은?',o:['질량','부피','시간','속도'],a:3,e:'속도는 크기와 방향을 모두 가집니다. 질량·부피·시간은 크기만 있는 스칼라입니다.'},
+{u:2,q:'2차원 평면 운동에서 물체의 자유도는?',o:['1','2','3','6'],a:2,e:'평면에서는 x 이동, y 이동, 회전 세 가지가 가능해 자유도가 3입니다. 3차원 공간은 6입니다.'},
+{u:2,q:'링크 4개와 자유도 1인 조인트 4개로 된 4절 링크 기구의 자유도는? <span class="mono">F = 3(E−1) − 2P₁ − P₂</span>',o:['0','1','2','3'],a:1,e:'F = 3(4−1) − 2×4 = 9 − 8 = 1. 크랭크 하나만 돌리면 나머지가 따라 움직입니다.'},
+{u:2,q:'회전 운동을 <b>직선 운동</b>으로 바꾸는 기구는?',o:['벨트 전동','랙과 피니언','마찰차 전동','체인 전동'],a:1,e:'나사 기구와 랙과 피니언이 회전을 직선으로 바꿉니다. 나머지는 회전을 회전으로 전달합니다.'},
+{u:2,q:'원동절이 연속 회전해도 종동절은 정지와 운동을 되풀이하는 기구는?',o:['연속 운동 기구','간헐 운동 기구','연결 기구','감아걸기 기구'],a:1,e:'캠 기구, 래칫 기구, 제네바 기구가 대표적인 간헐 운동 기구입니다.'},
+{u:2,q:'다음 중 <b>간헐 운동 기구</b>가 아닌 것은?',o:['캠 기구','래칫 기구','제네바 기구','랙과 피니언'],a:3,e:'랙과 피니언은 회전을 직선으로 바꾸는 연속 운동 기구입니다.'},
+{u:2,q:'두 축의 중심이 <b>일직선</b>에 놓이도록 고정하는 축이음은?',o:['고정 커플링','플렉시블 커플링','올덤 커플링','유니버설 커플링'],a:0,e:'고정 커플링은 두 축을 일직선으로 맞춰 고정합니다.'},
+{u:2,q:'두 축이 평행하지 않고 <b>한 점에서 교차</b>할 때 쓰는 커플링은?',o:['고정 커플링','올덤 커플링','유니버설 커플링','플렉시블 커플링'],a:2,e:'유니버설 커플링(자재 이음)은 교차하는 두 축을 잇습니다.'},
+{u:2,q:'원심력에 의해 추가 하중이 걸려 <b>고속 회전에 부적합</b>한 커플링은?',o:['올덤 커플링','고정 커플링','유니버설 커플링','플렉시블 커플링'],a:0,e:'올덤 커플링은 두 축이 평행하면서 약간 어긋난 경우에 쓰지만 고속에는 맞지 않습니다.'},
+{u:2,q:'동력을 전달할 때만 <b>단속적</b>으로 축을 연결하는 것은?',o:['커플링','클러치','베어링','키'],a:1,e:'클러치는 필요할 때만 붙였다 떼는 축이음입니다. 커플링은 늘 붙어 있습니다.'},
+{u:2,q:'맞물려 회전하는 두 기어 중 <b>작은</b> 쪽을 무엇이라 하는가?',o:['기어','피니언','랙','스프로킷'],a:1,e:'큰 쪽이 기어, 작은 쪽이 피니언입니다.'},
+{u:2,q:'기어의 특징으로 옳지 <b>않은</b> 것은?',o:['미끄럼 없이 정확한 속도비로 전달','두 축이 평행하지 않아도 전달 가능','아주 먼 거리의 동력 전달에 적합','소음과 진동이 생길 수 있음'],a:2,e:'기어는 비교적 가까운 거리의 동력 전달에 쓰입니다. 먼 거리는 체인이나 로프 전동입니다.'},
+{u:2,q:'<b>언더컷이 발생하지 않고</b> 시계 같은 정밀 기계에 쓰이는 치형은?',o:['인벌류트 치형','사이클로이드 치형','트로코이드 치형','원호 치형'],a:1,e:'사이클로이드 치형은 언더컷이 없고 소음이 적어 정밀 기계에 쓰이지만 가공과 조립이 어렵습니다.'},
+{u:2,q:'두 축이 <b>어긋나는</b> 경우에 쓰는 기어는?',o:['스퍼 기어','베벨 기어','웜 기어','내접 기어'],a:2,e:'웜 기어·하이포이드 기어·나사 기어가 어긋난 두 축을 잇습니다.'},
+{u:2,q:'두 축이 <b>교차</b>할 때 쓰는 대표적인 기어는?',o:['헬리컬 기어','베벨 기어','랙과 피니언','웜 기어'],a:1,e:'베벨 기어 계열(스파이럴·제롤·마이터 등)이 교차하는 두 축에 쓰입니다.'},
+{u:2,q:'나사가 <b>1회전</b>할 때 축 방향으로 움직인 직선거리는?',o:['피치','리드','바깥지름','골지름'],a:1,e:'리드 = 줄 수 × 피치. 한 줄 나사에서는 리드와 피치가 같습니다.'},
+{u:2,q:'서로 인접한 나사산과 나사산 사이의 축 방향 거리는?',o:['리드','피치','유효지름','나사골'],a:1,e:'피치는 산과 산 사이의 거리이고, 리드는 1회전 시 이동 거리입니다.'},
+{u:2,q:'다음 중 <b>운동용 나사</b>가 아닌 것은?',o:['사각 나사','사다리꼴 나사','볼 나사','유니파이 나사'],a:3,e:'유니파이 나사는 삼각(미터) 나사와 함께 체결용 나사입니다.'},
+{u:2,q:'평면 캠 중 속도가 빨라지면 <b>종동절이 이탈</b>하는 단점이 있는 것은?',o:['판 캠','원통 캠','구면 캠','경사판 캠'],a:0,e:'판 캠은 구조가 간단하지만 고속에서 종동절이 캠 면에서 떨어질 수 있습니다.'},
+{u:2,q:'평면 캠보다 차지하는 공간이 작아 <b>소형 기계</b>에 많이 쓰이는 캠은?',o:['판 캠','정면 캠','입체 캠','직동 캠'],a:2,e:'원통 캠·경사판 캠·원뿔 캠·구면 캠·단면 캠이 입체 캠입니다.'},
+{u:2,q:'벨트 전동에서 힘을 전달하는 원리는?',o:['맞물림','마찰력','자기력','유압'],a:1,e:'벨트와 풀리 접촉면의 마찰력으로 전달합니다. 타이밍 벨트만 맞물림을 씁니다.'},
+{u:2,q:'평벨트를 <b>엇걸기</b> 했을 때 두 축의 회전 방향은?',o:['같다','반대다','바뀌지 않는다','속도에 따라 다르다'],a:1,e:'엇걸기는 회전 방향이 반대가 되고, 접촉각이 커져 동력 전달은 크지만 마모가 심합니다.'},
+{u:2,q:'V 벨트의 특징으로 옳지 <b>않은</b> 것은?',o:['접촉 면적이 넓어 큰 회전력 전달','평벨트보다 미끄럼이 적음','이음매가 있어 소음이 큼','설치 면적이 작아 공간 효율이 좋음'],a:2,e:'V 벨트는 이음매가 없어 오히려 조용하고 충격을 완화합니다.'},
+{u:2,q:'미끄럼 없이 <b>정확한 속도비</b>로 동력을 전달하는 벨트는?',o:['평 벨트','V 벨트','타이밍 벨트','로프'],a:2,e:'타이밍 벨트는 벨트와 풀리 양쪽에 이를 내어 기어처럼 맞물립니다.'},
+{u:2,q:'체인을 감아 힘을 전달하는, 이가 형성된 바퀴의 이름은?',o:['풀리','스프로킷','플랜지','칼라'],a:1,e:'스프로킷(체인 기어)이라고 합니다.'},
+{u:2,q:'롤러 체인보다 소음이 적어 조용하지만 비싸고 무거운 체인은?',o:['사일런트 체인','블록 체인','핀틀 체인','링크 체인'],a:0,e:'사일런트 체인은 링크가 스프로킷에 미끄러져 들어가 맞물려 조용하며, 주로 고속용입니다.'},
+{u:2,q:'벨트·체인보다 훨씬 먼 거리(10 m 이상)의 동력을 전달할 수 있는 것은?',o:['V 벨트','타이밍 벨트','로프 전동','기어 전동'],a:2,e:'로프 전동은 먼 거리, 고속 운전, 직선이 아닌 전동 경로에도 쓸 수 있습니다.'},
+{u:2,q:'벨트 전동에서 축 간 거리가 멀 때 벨트가 펄럭이는 현상은?',o:['크리핑','플래핑','슬립','채터링'],a:1,e:'플래핑(flapping) 현상입니다. 고속 회전 시에는 진동이 생기기 쉽습니다.'},
+
+{u:3,q:'어떤 형태의 에너지를 다른 형태의 에너지로 바꾸는, 센서보다 <b>넓은</b> 의미의 장치는?',o:['액추에이터','트랜스듀서','컨트롤러','인버터'],a:1,e:'트랜스듀서는 변환기, 센서는 검출기라고 할 수 있습니다.'},
+{u:3,q:'센서가 검출할 수 있는 <b>최소 변화량</b>을 뜻하는 성능은?',o:['감도','분해능','선택도','안정성'],a:1,e:'분해능은 얼마나 작은 변화까지 잡아낼 수 있는가입니다.'},
+{u:3,q:'여러 신호원 중 측정하려는 <b>대상에만</b> 반응하는 능력은?',o:['감도','분해능','선택도','재현성'],a:2,e:'선택도가 낮으면 엉뚱한 신호에도 반응해 오작동합니다.'},
+{u:3,q:'조건이 같은데도 시간이 지나며 출력이 조금씩 변하는 현상은?',o:['드리프트','히스테리시스','노이즈','오프셋'],a:0,e:'안정성과 관련된 현상으로 드리프트라고 합니다.'},
+{u:3,q:'입력 신호의 변화에 대해 출력이 얼마나 변하는지 나타내는 비율은?',o:['감도','분해능','선택도','잡음'],a:0,e:'감도는 측정 정밀도와 분해능을 결정하는 중요한 요소입니다.'},
+{u:3,q:'사람의 <b>피부</b>가 담당하는 감지 대상에 해당하지 않는 것은?',o:['압력','온도','습도','냄새'],a:3,e:'냄새는 코(후각)의 몫으로, 가스 센서가 담당합니다.'},
+{u:3,q:'가속도를 계측하기 위한 <b>관성 센서</b>의 일종은?',o:['엔코더','가속도계','서미스터','홀 소자'],a:1,e:'가속도계는 물체나 구조물의 운동으로 생긴 가속도를 측정합니다.'},
+{u:3,q:'투광부에서 낸 빛이 물체에 의해 반사·투과·차단되는 변화를 수광부가 잡는 센서는?',o:['자기 센서','광센서','습도 센서','이온 센서'],a:1,e:'광센서는 대상 물체가 방출하는 빛을 감지하기도 합니다.'},
+{u:3,q:'다음 중 <b>화학 센서</b>에 속하는 것은?',o:['스트레인 게이지','로드 셀','반도체 가스 센서','엔코더'],a:2,e:'습도·가스·이온·바이오센서가 화학 센서입니다. 나머지는 물리 센서입니다.'},
+{u:3,q:'<b>온도</b>를 감지하는 대표적인 센서 소자는?',o:['홀 소자','서미스터','포토다이오드','로드 셀'],a:1,e:'열전쌍과 서미스터가 대표적인 온도 센서입니다.'},
+{u:3,q:'<b>자기장</b>의 세기와 방향을 측정하는 소자는?',o:['홀 소자','다이어프램','리졸버','결로 센서'],a:0,e:'홀 소자와 자기 저항 소자가 자기를 감지합니다.'},
+{u:3,q:'회전각과 위치를 검출하는 센서는?',o:['엔코더','천칭','산소 센서','콘덴서 변위계'],a:0,e:'엔코더·리졸버·스트로보스코프가 회전각·위치를 검출합니다.'},
+{u:3,q:'자동화에서 센서를 쓰면 얻는 이점이 <b>아닌</b> 것은?',o:['고장을 자동으로 진단','생산품의 품질 검사가 쉬워짐','설비 도입 비용이 없어짐','물류 관리의 정확성이 높아짐'],a:2,e:'센서를 달면 관리가 쉬워지지만 설비 비용은 여전히 듭니다.'},
+
+{u:4,q:'액추에이터를 구동 에너지원으로 나눈 것으로 옳은 것은?',o:['공압식 · 유압식 · 전기식','직선식 · 회전식 · 요동식','아날로그식 · 디지털식','접촉식 · 비접촉식'],a:0,e:'공압·유압·전기 세 가지 에너지원으로 나눕니다.'},
+{u:4,q:'압축 공기를 밀폐된 실린더로 보내어 일로 바꾸는 액추에이터는?',o:['유압 실린더','공압 실린더','솔레노이드','서보 모터'],a:1,e:'공압 액추에이터는 압축 공기의 에너지를 활용합니다.'},
+{u:4,q:'유압 펌프가 공급한 <b>작동유</b>로 실린더를 움직여 일을 하는 것은?',o:['공압 모터','유압 액추에이터','리니어 모터','스텝 모터'],a:1,e:'유압 에너지가 기계적 에너지로 변환됩니다.'},
+{u:4,q:'전기식 액추에이터 중 <b>직선</b> 운동을 하는 것은?',o:['DC 모터','스텝 모터','솔레노이드','서보 모터'],a:2,e:'리니어 모터·솔레노이드·전동 실린더가 직선 운동을 합니다.'},
+{u:4,q:'공압 장치의 <b>장점</b>으로 옳은 것은?',o:['정확한 위치 제어가 쉽다','작은 장치로 큰 힘을 얻는다','인화·폭발 위험이 적다','에너지 효율이 높다'],a:2,e:'공압은 화재 염려가 적고 과부하에도 비교적 안전합니다. 정밀 제어와 큰 힘은 유압이 낫습니다.'},
+{u:4,q:'공압 장치의 <b>단점</b>으로 옳은 것은?',o:['배관이 복잡하다','압축성 때문에 정확한 속도 제어가 어렵다','기름이 새면 화재 위험이 있다','윤활이 필요 없다'],a:1,e:'공기는 압축되기 때문에 위치와 속도를 정밀하게 잡기 어렵습니다.'},
+{u:4,q:'유압 장치의 <b>장점</b>으로 옳은 것은?',o:['작은 장치로 큰 힘을 얻는다','사용한 기름을 대기로 방출한다','온도 변화에 둔감하다','설비 비용이 저렴하다'],a:0,e:'유압은 고출력이며 무단 변속과 정확한 속도 제어가 가능합니다.'},
+{u:4,q:'유압 장치에서 온도가 변할 때 성능이 달라지는 직접적인 이유는?',o:['공기가 섞여서','작동유의 점도가 변해서','배관이 길어져서','펌프가 멈춰서'],a:1,e:'점도가 변하면 유량과 저항이 달라져 성능이 흔들립니다.'},
+{u:4,q:'큰 힘으로 금속판을 누르는 프레스에 가장 알맞은 액추에이터는?',o:['공압 실린더','유압 실린더','솔레노이드','스텝 모터'],a:1,e:'큰 힘이 필요한 작업은 유압이 유리합니다.'}
+];
+
+/* ═══════════════════════════════════════════════════════════
+   앱
+   ═══════════════════════════════════════════════════════════ */
+var $=function(id){return document.getElementById(id)};
+var SKEY='jg_v1';
+var ST={learned:{},chain:{},match:{},best:0};
+try{ var s=localStorage.getItem(SKEY); if(s) ST=Object.assign(ST,JSON.parse(s)); }catch(e){}
+function save(){ try{ localStorage.setItem(SKEY,JSON.stringify(ST)); }catch(e){} }
+
+function toast(m){ var t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(function(){t.classList.remove('on')},1900); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
+function lamps(n){ ['lamp1','lamp2','lamp3'].forEach(function(id,i){ var el=$(id); el.className='lamp'+(i<n?' on':''); }); }
+function plate(t){ $('plate').textContent=t; }
+function pts(){ var p=(window.FX&&FX.score)?FX.score():0; $('pts').textContent=p+' P'; }
+setInterval(pts,600);
+
+var SCREENS=['home','learn','topic','chain','sheet','quiz'];
+function show(id){
+  SCREENS.forEach(function(s){ $(s).classList.toggle('hide', s!==id); });
+  window.scrollTo(0,0);
+}
+window.BACKBAR_HOME=function(){ go('home'); };
+window.BACKBAR_ATHOME=function(){ return !$('home').classList.contains('hide'); };
+
+function go(where){
+  if(where==='home'){ show('home'); plate('전자 기계 이론'); lamps(1); renderHome(); }
+  else if(where==='learn'){ show('learn'); plate('배우기'); lamps(1); renderLearn(); }
+  else if(where==='chain'){ show('chain'); plate('신호 사슬'); lamps(2); startChain(0); }
+  else if(where==='sheet'){ show('sheet'); plate('짝 맞추기'); lamps(2); startMatch(0); }
+  else if(where==='speed'){ show('quiz'); plate('스피드 퀴즈'); lamps(2); startQuiz('speed'); }
+  else if(where==='exam'){ show('quiz'); plate('종합 시험'); lamps(3); startQuiz('exam'); }
+}
+document.addEventListener('click',function(ev){
+  var b=ev.target.closest('[data-go]'); if(b) go(b.getAttribute('data-go'));
+});
+
+/* ── 홈 ─────────────────────────────────────────────────── */
+function renderHome(){
+  $('gLearn').innerHTML=Object.keys(ST.learned).length+'<small>/'+TOPICS.length+'</small>';
+  $('gChain').innerHTML=Object.keys(ST.chain).length+'<small>/'+CHAINS.length+'</small>';
+  $('gSheet').innerHTML=Object.keys(ST.match).length+'<small>/'+MATCH.length+'</small>';
+  $('gBest').innerHTML=(ST.best?ST.best:'–')+'<small>점</small>';
+}
+
+/* ── 배우기 ─────────────────────────────────────────────── */
+function renderLearn(){
+  $('learnCount').textContent=Object.keys(ST.learned).length+' / '+TOPICS.length+' 읽음';
+  $('learnList').innerHTML=TOPICS.map(function(t,i){
+    return '<button class="titem'+(ST.learned[i]?' read':'')+'" data-t="'+i+'">'+
+      '<span class="no">'+esc(t.no)+'</span>'+
+      '<span><b>'+esc(t.t)+'</b><span>'+esc(t.lead)+'</span></span></button>';
+  }).join('');
+  Array.prototype.forEach.call($('learnList').querySelectorAll('[data-t]'),function(b){
+    b.onclick=function(){ openTopic(+b.getAttribute('data-t')); };
+  });
+}
+var curTopic=0;
+function openTopic(i){
+  curTopic=i; var t=TOPICS[i];
+  show('topic'); plate(t.no+' '+t.t); lamps(1); window.scrollTo(0,0);
+  $('topicTtl').textContent=t.t;
+  var h='<div class="pad"><p class="stamp">'+esc(t.no)+' · '+esc(U[t.u])+'</p>'+
+        '<h2>'+esc(t.t)+'</h2><p class="lead">'+esc(t.lead)+'</p>';
+  var sec=0;
+  t.body.forEach(function(b){
+    /* 번호는 제목이 있는 절에만 붙인다 — 중간에 번호가 건너뛰지 않도록 */
+    if(b.h){ sec++; h+='<h3><span class="n">'+String(sec).padStart(2,'0')+'</span>'+esc(b.h)+'</h3>'; }
+    if(b.def) h+='<div class="def">'+b.def+'</div>';
+    if(b.p) h+='<p>'+b.p+'</p>';
+    if(b.ul) h+='<ul>'+b.ul.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>';
+    if(b.table){
+      h+='<div class="tw"><table><thead><tr>'+b.table.head.map(function(x){return '<th>'+esc(x)+'</th>'}).join('')+'</tr></thead><tbody>'+
+         b.table.rows.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+c+'</td>'}).join('')+'</tr>'}).join('')+
+         '</tbody></table></div>';
+    }
+    if(b.cau) h+='<div class="cau">'+b.cau+'</div>';
+  });
+  h+='</div><dl class="tblock">'+
+     '<div><dt>단원</dt><dd>'+esc(t.no)+'</dd></div>'+
+     '<div><dt>주제</dt><dd>'+(i+1)+' / '+TOPICS.length+'</dd></div>'+
+     '<div><dt>상태</dt><dd>읽는 중</dd></div></dl>';
+  $('topicSheet').innerHTML=h;
+  $('tPrev').disabled=(i===0);
+  $('tNext').textContent=(i===TOPICS.length-1)?'목록으로 →':'다음 주제 →';
+  if(!ST.learned[i]){
+    ST.learned[i]=1; save();
+    if(window.FX){ FX.burst($('topicSheet'),{n:14}); }
+  }
+}
+$('tPrev').onclick=function(){ if(curTopic>0) openTopic(curTopic-1); };
+$('tNext').onclick=function(){
+  if(curTopic===TOPICS.length-1){
+    if(window.FX) FX.banner({title:'배우기 한 바퀴 끝!',sub:'이제 신호 사슬과 짝 맞추기로 확인해 보세요',stars:3});
+    go('learn');
+  } else openTopic(curTopic+1);
+};
+
+/* ── 신호 사슬 ──────────────────────────────────────────── */
+var CH={i:0,fill:[],pick:null,done:false,start:0,wrong:[],res:{}};
+function startChain(i){
+  CH={i:i,fill:[null,null,null],pick:null,done:false,start:CH.start||Date.now(),wrong:CH.wrong||[],res:CH.res||{}};
+  if(i===0){ CH.start=Date.now(); CH.wrong=[]; CH.res={}; }
+  drawChain();
+}
+/* 점수는 그 사슬을 처음 확인했을 때 한 번만 기록한다. 다시 풀기로 점수가 불어나지 않게. */
+function scoreOf(res){ var n=0; for(var k in res) if(res[k]===1) n++; return n; }
+function drawChain(){
+  var c=CHAINS[CH.i];
+  $('chainNo').textContent=(CH.i+1)+' / '+CHAINS.length;
+  var filled=CH.fill.filter(Boolean).length;
+  /* 입력 → 판단 → 구동 → 동작, 사이마다 선 하나씩 */
+  var nodes=[
+    {role:c.slots[0].role, slot:0},
+    {wire:0},
+    {role:'판단', fixed:'제어 장치', c:'--f-ctl'},
+    {wire:1},
+    {role:c.slots[1].role, slot:1},
+    {wire:2},
+    {role:c.slots[2].role, slot:2}
+  ];
+  var h='<div class="flow"><div class="fh"><h3>'+esc(c.t)+'</h3>'+
+        '<span class="cnt">'+filled+' / 3 연결</span></div>'+
+        '<p class="scen">'+esc(c.scen)+'</p><div class="chain">';
+  nodes.forEach(function(n){
+    if(n.wire!==undefined){
+      var live = CH.fill[n.wire]!==null;
+      h+='<div class="wire'+(live?' live':'')+'">'+(live?'<span class="dot"></span>':'')+'</div>';
+      return;
+    }
+    if(n.fixed){
+      h+='<div class="node" style="--nc:var('+n.c+')"><p class="role">'+esc(n.role)+'</p><p class="nm">'+esc(n.fixed)+'</p></div>';
+      return;
+    }
+    var s=c.slots[n.slot], v=CH.fill[n.slot];
+    var cls='node'+(v?'':' slot');
+    if(CH.done && v) cls+=(v===s.a?' ok':' ng');
+    h+='<button class="'+cls+'" style="--nc:var('+(v?s.c:'--f-mec')+')" data-slot="'+n.slot+'">'+
+       '<p class="role">'+esc(s.role)+'</p><p class="nm">'+esc(v||'? 여기에 놓기')+'</p></button>';
+  });
+  h+='</div><div class="fbank">'+
+     shuffleOnce(c).map(function(x){
+       var used=CH.fill.indexOf(x)>=0;
+       return '<button class="fchip'+(used?' used':'')+(CH.pick===x?' pick':'')+'" data-chip="'+esc(x)+'">'+esc(x)+'</button>';
+     }).join('')+'</div>';
+  if(CH.done) h+='<div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--flowline);font-size:.87rem;color:#3f5160"><b style="color:var(--f-in)">왜 그런가</b><br>'+esc(c.why)+'</div>';
+  h+='</div>';
+  $('chainBox').innerHTML=h;
+
+  Array.prototype.forEach.call($('chainBox').querySelectorAll('[data-chip]'),function(b){
+    b.onclick=function(){ CH.pick=(CH.pick===b.getAttribute('data-chip'))?null:b.getAttribute('data-chip'); drawChain(); };
+  });
+  Array.prototype.forEach.call($('chainBox').querySelectorAll('[data-slot]'),function(b){
+    b.onclick=function(){
+      if(CH.done) return;
+      var k=+b.getAttribute('data-slot');
+      if(CH.fill[k]){ CH.fill[k]=null; CH.pick=null; drawChain(); return; }
+      if(!CH.pick){ toast('아래에서 부품을 먼저 고르세요'); return; }
+      CH.fill[k]=CH.pick; CH.pick=null; drawChain();
+    };
+  });
+
+  var r=$('chainRow');
+  if(CH.done){
+    r.innerHTML='<button class="btn ghost" id="cRetry">다시 풀기</button>'+
+      (CH.i<CHAINS.length-1?'<button class="btn go" id="cNext">다음 사슬 →</button>':'<button class="btn go" id="cEnd">결과 보기</button>');
+    $('cRetry').onclick=function(){ CH.fill=[null,null,null]; CH.done=false; drawChain(); };
+    if($('cNext')) $('cNext').onclick=function(){ startChain(CH.i+1); };
+    if($('cEnd')) $('cEnd').onclick=chainResult;
+  } else {
+    r.innerHTML='<button class="btn go" id="cCheck"'+(CH.fill.filter(Boolean).length<3?' disabled':'')+'>확인하기</button>';
+    $('cCheck').onclick=checkChain;
+  }
+}
+function shuffleOnce(c){ if(!c._sh) c._sh=shuffle(c.bank); return c._sh; }
+function checkChain(){
+  var c=CHAINS[CH.i], allok=true, w=[];
+  c.slots.forEach(function(s,k){ if(CH.fill[k]!==s.a){ allok=false; w.push(c.t+' '+s.role+'→'+CH.fill[k]); } });
+  CH.done=true;
+  if(CH.res[CH.i]===undefined){                 // 첫 확인만 점수에 반영
+    CH.res[CH.i]=allok?1:0;
+    if(!allok) CH.wrong=CH.wrong.concat(w);
+  }
+  if(allok){ ST.chain[CH.i]=1; save(); if(window.FX) FX.ok($('chainBox')); }
+  else if(window.FX) FX.no($('chainBox'));
+  drawChain();
+}
+function chainResult(){
+  var ok=scoreOf(CH.res);
+  var pct=Math.round(ok/CHAINS.length*100);
+  var dur=Math.round((Date.now()-CH.start)/1000);
+  $('chainBox').innerHTML='<div class="result"><div class="big'+(pct>=80?'':pct>=50?' mid':' low')+'">'+pct+'</div>'+
+    '<div class="sub">'+CHAINS.length+'개 사슬 중 '+ok+'개를 첫 번에 맞혔습니다</div>'+
+    '<div id="submitAnchor"></div></div>';
+  $('chainRow').innerHTML='<button class="btn ghost" data-go="home">홈으로</button><button class="btn go" data-go="chain">다시 하기</button>';
+  if(window.Rank) Rank.award(pct,{mode:'신호 사슬'});
+  if(window.FX) FX.banner({title:'신호 사슬 완료',sub:pct+'점',stars:FX.starsFor?FX.starsFor(pct):3});
+  attachSubmit($('submitAnchor'),{
+    mode:'전자 기계 — 신호 사슬', score:pct, correct:ok, total:CHAINS.length,
+    wrong:CH.wrong, durationSec:dur
+  },['자동화 시스템 신호 흐름 이해']);
+}
+
+/* ── 짝 맞추기 ──────────────────────────────────────────── */
+var MT={i:0,fill:{},pick:null,done:false,start:0,res:{},wrong:[]};
+function startMatch(i){
+  if(i===0){ MT.start=Date.now(); MT.res={}; MT.wrong=[]; }
+  MT.i=i; MT.fill={}; MT.pick=null; MT.done=false;
+  drawMatch();
+}
+function drawMatch(){
+  var m=MATCH[MT.i];
+  $('sheetNo').textContent=(MT.i+1)+' / '+MATCH.length;
+  $('sheetTabs').innerHTML=MATCH.map(function(x,i){
+    return '<button class="chip'+(i===MT.i?' on':'')+'" data-m="'+i+'"><span class="u">'+esc(x.u===2?'Ⅱ':x.u===3?'Ⅲ':'Ⅳ')+'</span>'+esc(x.t)+(ST.match[i]?' ✓':'')+'</button>';
+  }).join('');
+  Array.prototype.forEach.call($('sheetTabs').querySelectorAll('[data-m]'),function(b){
+    b.onclick=function(){ startMatch(+b.getAttribute('data-m')); };
+  });
+
+  var bank=matchBank(m);
+  var h='<div class="sheet mset"><div class="pad">'+
+    '<p class="stamp">'+esc(m.hint)+'</p>'+
+    '<h2>'+esc(m.q)+'</h2>'+
+    '<p class="lead">왼쪽 설명을 읽고, 아래 칸에서 알맞은 이름을 골라 오른쪽에 놓으세요.</p>'+
+    '<div class="pairs">';
+  m.pairs.forEach(function(p,k){
+    var v=MT.fill[k];
+    var cls='slot'+(v?' set':'');
+    if(MT.done && v) cls+=(v===p[1]?' right':' wrong');
+    h+='<div class="pr'+(v?' filled':'')+'"><div class="cell">'+esc(p[0])+'</div>'+
+       '<div class="lead"></div>'+
+       '<button class="'+cls+'" data-slot="'+k+'">'+esc(v||'?')+'</button></div>';
+  });
+  h+='</div><div class="bank">'+bank.map(function(x){
+      var used=false; for(var k in MT.fill){ if(MT.fill[k]===x) used=true; }
+      return '<button class="bchip'+(used?' used':'')+(MT.pick===x?' pick':'')+'" data-chip="'+esc(x)+'">'+esc(x)+'</button>';
+    }).join('')+'</div>';
+  if(MT.done){
+    h+='<div class="cau" style="margin-top:14px"><b>정답</b><br>'+
+       m.pairs.map(function(p){return esc(p[0])+' → <b>'+esc(p[1])+'</b>'}).join('<br>')+'</div>';
+  }
+  h+='</div><dl class="tblock">'+
+     '<div><dt>세트</dt><dd>'+(MT.i+1)+' / '+MATCH.length+'</dd></div>'+
+     '<div><dt>연결</dt><dd>'+Object.keys(MT.fill).length+' / '+m.pairs.length+'</dd></div>'+
+     '<div><dt>단원</dt><dd>'+esc(m.hint.split(' · ')[0])+'</dd></div></dl></div>';
+  $('sheetBox').innerHTML=h;
+
+  Array.prototype.forEach.call($('sheetBox').querySelectorAll('[data-chip]'),function(b){
+    b.onclick=function(){ MT.pick=(MT.pick===b.getAttribute('data-chip'))?null:b.getAttribute('data-chip'); drawMatch(); };
+  });
+  Array.prototype.forEach.call($('sheetBox').querySelectorAll('[data-slot]'),function(b){
+    b.onclick=function(){
+      if(MT.done) return;
+      var k=b.getAttribute('data-slot');
+      if(MT.fill[k]){ delete MT.fill[k]; MT.pick=null; drawMatch(); return; }
+      if(!MT.pick){ toast('아래 칸에서 이름을 먼저 고르세요'); return; }
+      MT.fill[k]=MT.pick; MT.pick=null; drawMatch();
+    };
+  });
+
+  var r=$('sheetRow');
+  if(MT.done){
+    r.innerHTML='<button class="btn ghost" id="mRetry">다시 풀기</button>'+
+      (MT.i<MATCH.length-1?'<button class="btn go" id="mNext">다음 세트 →</button>':'<button class="btn go" id="mEnd">결과 보기</button>');
+    $('mRetry').onclick=function(){ MT.fill={}; MT.done=false; drawMatch(); };
+    if($('mNext')) $('mNext').onclick=function(){ startMatch(MT.i+1); };
+    if($('mEnd')) $('mEnd').onclick=matchResult;
+  } else {
+    r.innerHTML='<button class="btn go" id="mCheck"'+(Object.keys(MT.fill).length<m.pairs.length?' disabled':'')+'>확인하기</button>';
+    $('mCheck').onclick=checkMatch;
+  }
+}
+function matchBank(m){
+  if(!m._sh) m._sh=shuffle(m.pairs.map(function(p){return p[1]}).concat(m.extra));
+  return m._sh;
+}
+function checkMatch(){
+  var m=MATCH[MT.i], allok=true, w=[];
+  m.pairs.forEach(function(p,k){ if(MT.fill[k]!==p[1]){ allok=false; w.push(m.t+' '+p[0]+'→'+(MT.fill[k]||'(비움)')); } });
+  MT.done=true;
+  if(MT.res[MT.i]===undefined){                 // 첫 확인만 점수에 반영
+    MT.res[MT.i]=allok?1:0;
+    if(!allok) MT.wrong=MT.wrong.concat(w);
+  }
+  if(allok){ ST.match[MT.i]=1; save(); if(window.FX) FX.ok($('sheetBox')); }
+  else if(window.FX) FX.no($('sheetBox'));
+  drawMatch();
+}
+function matchResult(){
+  var ok=scoreOf(MT.res);
+  var pct=Math.round(ok/MATCH.length*100);
+  var dur=Math.round((Date.now()-MT.start)/1000);
+  $('sheetTabs').innerHTML='';
+  $('sheetBox').innerHTML='<div class="result"><div class="big'+(pct>=80?'':pct>=50?' mid':' low')+'">'+pct+'</div>'+
+    '<div class="sub">'+MATCH.length+'세트 중 '+ok+'세트를 첫 번에 맞혔습니다</div><div id="submitAnchor"></div></div>';
+  $('sheetRow').innerHTML='<button class="btn ghost" data-go="home">홈으로</button><button class="btn go" data-go="sheet">다시 하기</button>';
+  if(window.Rank) Rank.award(pct,{mode:'짝 맞추기'});
+  if(window.FX) FX.banner({title:'짝 맞추기 완료',sub:pct+'점',stars:FX.starsFor?FX.starsFor(pct):3});
+  attachSubmit($('submitAnchor'),{
+    mode:'전자 기계 — 짝 맞추기', score:pct, correct:ok, total:MATCH.length,
+    wrong:MT.wrong, durationSec:dur
+  },['기계요소·센서 분류 이해']);
+}
+
+/* ── 스피드 퀴즈 · 종합 시험 ────────────────────────────── */
+var Q={mode:'speed',list:[],i:0,sel:null,ans:[],start:0};
+function startQuiz(mode){
+  Q.mode=mode;
+  Q.list=shuffle(BANK).slice(0, mode==='exam'?20:8).map(function(item){
+    var idx=item.o.map(function(_,i){return i});
+    var sh=shuffle(idx);
+    return {u:item.u,q:item.q,o:sh.map(function(i){return item.o[i]}),a:sh.indexOf(item.a),e:item.e};
+  });
+  Q.i=0; Q.sel=null; Q.ans=[]; Q.start=Date.now();
+  $('quizTtl').textContent = mode==='exam'?'종합 시험':'스피드 퀴즈';
+  $('quizBack').onclick=function(){
+    if(Q.mode==='exam' && Q.i<Q.list.length && !confirm('시험을 그만두면 기록이 남지 않습니다. 나갈까요?')) return;
+    go('home');
+  };
+  drawQuiz();
+}
+function drawQuiz(){
+  var n=Q.list.length, it=Q.list[Q.i], done=Q.ans[Q.i]!==undefined;
+  var showAns = (Q.mode==='speed') && done;
+  /* 잠그는 것은 스피드 퀴즈뿐. 시험에서는 끝까지 답을 바꿀 수 있어야 한다. */
+  var locked = showAns;
+  $('quizSub').textContent=(Q.i+1)+' / '+n;
+  var h='<div class="qpanel"><div class="top">'+
+    '<span class="tag">Q '+String(Q.i+1).padStart(2,'0')+' / '+n+'</span>'+
+    '<span class="unit">'+esc(U[it.u])+'</span></div>'+
+    '<div class="stage"><p class="qtext">'+it.q+'</p><div class="pbs'+(it.o.every(function(x){return x.length<14})?' two':'')+'">';
+  it.o.forEach(function(o,i){
+    var cls='pb';
+    if(showAns){ if(i===it.a) cls+=' right'; else if(i===Q.ans[Q.i]) cls+=' wrong'; }
+    else if(Q.sel===i) cls+=' sel';
+    h+='<button class="'+cls+'" data-o="'+i+'"'+(locked?' disabled':'')+'>'+esc(o)+'</button>';
+  });
+  h+='</div>';
+  if(showAns) h+='<div class="explain"><b>해설</b>'+esc(it.e)+'</div>';
+  h+='</div><div class="rail">';
+  for(var k=0;k<n;k++){
+    var c='';
+    if(k===Q.i) c=' now';
+    else if(Q.ans[k]!==undefined){
+      c = (Q.mode==='exam') ? ' ans' : (Q.ans[k]===Q.list[k].a?' done':' miss');
+    }
+    h+='<i class="'+c.trim()+'"></i>';
+  }
+  h+='<span class="n">'+(Q.mode==='exam'
+      ? '채점은 마지막에'
+      : (Q.ans.filter(function(v,i){return v===Q.list[i].a}).length)+' 정답 · 콤보 '+((window.FX&&FX.combo)?FX.combo():0))+'</span>';
+  h+='</div></div>';
+  $('quizBox').innerHTML=h;
+
+  Array.prototype.forEach.call($('quizBox').querySelectorAll('[data-o]'),function(b){
+    b.onclick=function(){
+      var i=+b.getAttribute('data-o');
+      if(Q.mode==='speed'){
+        Q.ans[Q.i]=i;
+        if(i===it.a){ if(window.FX) FX.ok(b); } else { if(window.FX) FX.no(b); }
+      } else {
+        /* 시험 — 같은 답을 다시 누르면 선택 취소. 정답은 알려 주지 않는다. */
+        if(Q.ans[Q.i]===i) delete Q.ans[Q.i]; else Q.ans[Q.i]=i;
+        Q.sel=(Q.ans[Q.i]===undefined)?null:i;
+      }
+      drawQuiz();
+    };
+  });
+
+  var r=$('quizRow');
+  if(Q.mode==='speed'){
+    r.innerHTML = done
+      ? (Q.i<n-1 ? '<button class="btn go" id="qNext">다음 →</button>' : '<button class="btn go" id="qEnd">결과 보기</button>')
+      : '<button class="btn ghost" disabled>답을 고르세요</button>';
+  } else {
+    /* 시험에서는 건너뛰고 나중에 돌아올 수 있어야 한다 — 이동 버튼을 잠그지 않는다. */
+    r.innerHTML = '<button class="btn ghost" id="qPrev"'+(Q.i===0?' disabled':'')+'>← 이전</button>'+
+      (Q.i<n-1
+        ? '<button class="btn go" id="qNext">다음 →</button>'
+        : '<button class="btn warm" id="qEnd">제출하고 채점</button>');
+  }
+  if($('qNext')) $('qNext').onclick=function(){
+    Q.i++; Q.sel=(Q.ans[Q.i]!==undefined?Q.ans[Q.i]:null); drawQuiz();
+  };
+  if($('qPrev')) $('qPrev').onclick=function(){
+    Q.i--; Q.sel=(Q.ans[Q.i]!==undefined?Q.ans[Q.i]:null); drawQuiz();
+  };
+  if($('qEnd')) $('qEnd').onclick=function(){
+    if(Q.mode==='exam'){
+      var blank=0; for(var k=0;k<Q.list.length;k++) if(Q.ans[k]===undefined) blank++;
+      if(blank && !confirm(blank+'문항이 비어 있습니다. 그대로 채점할까요?')) return;
+    }
+    quizResult();
+  };
+}
+function quizResult(){
+  var n=Q.list.length, c=0, wrongs=[];
+  Q.list.forEach(function(it,i){
+    if(Q.ans[i]===it.a) c++;
+    else wrongs.push({i:i,it:it,me:Q.ans[i]});
+  });
+  var pct=Math.round(c/n*100);
+  var dur=Math.round((Date.now()-Q.start)/1000);
+  if(Q.mode==='exam' && pct>ST.best){ ST.best=pct; save(); }
+
+  var h='<div class="result"><div class="big'+(pct>=80?'':pct>=50?' mid':' low')+'">'+pct+'</div>'+
+    '<div class="sub">'+n+'문항 중 '+c+'문항 정답 · '+Math.floor(dur/60)+'분 '+(dur%60)+'초</div>';
+  if(Q.mode==='exam') h+='<div id="submitAnchor"></div>';
+  h+='</div>';
+  if(wrongs.length){
+    h+='<h3 style="margin:20px 0 10px;font-size:1.02rem;font-weight:800">오답노트 <span class="mono" style="color:var(--ink3);font-size:.8rem">'+wrongs.length+'문항</span></h3><div class="wrongbox">';
+    wrongs.forEach(function(w){
+      h+='<div class="wcard"><div class="qn">'+esc(U[w.it.u])+' · '+(w.i+1)+'번</div>'+
+         '<div class="q">'+w.it.q+'</div><div class="ans">'+
+         '<div class="me">내가 고른 답 — '+esc(w.me===undefined?'(비움)':w.it.o[w.me])+'</div>'+
+         '<div class="co">정답 — '+esc(w.it.o[w.it.a])+'</div></div>'+
+         '<div class="ex">'+esc(w.it.e)+'</div></div>';
+    });
+    h+='</div>';
+  } else {
+    h+='<div class="empty">틀린 문제가 없습니다. 완벽합니다.</div>';
+  }
+  $('quizBox').innerHTML=h;
+  $('quizRow').innerHTML='<button class="btn ghost" data-go="home">홈으로</button>'+
+    '<button class="btn go" data-go="'+(Q.mode==='exam'?'exam':'speed')+'">다시 풀기</button>';
+
+  if(window.Rank) Rank.award(pct,{mode:Q.mode==='exam'?'종합 시험':'스피드 퀴즈'});
+  if(window.FX) FX.banner({title:Q.mode==='exam'?'종합 시험 끝':'스피드 퀴즈 끝',sub:pct+'점 · '+c+'/'+n,stars:FX.starsFor?FX.starsFor(pct):3});
+
+  if(Q.mode==='exam'){
+    attachSubmit($('submitAnchor'),{
+      mode:'전자 기계 — 종합 시험', score:pct, correct:c, total:n,
+      wrong:wrongs.map(function(w){ return (w.i+1)+'번 '+(w.me===undefined?'(비움)':w.it.o[w.me])+'→'+w.it.o[w.it.a]; }),
+      durationSec:dur
+    },['전자 기계 이론 종합 이해']);
+  }
+}
+
+/* ── 결과 제출 ─────────────────────────────────────────── */
+function attachSubmit(anchor,result,extra){
+  if(!anchor || !window.ResultCollector || !ResultCollector.attach) return;
+  var btn=ResultCollector.attach(anchor, function(){ return result; },
+    {id:'rcBtn', className:'btn go', mode:result.mode, extra:extra||[]});
+  if(btn){ btn.style.width='100%'; btn.style.marginTop='14px'; btn.textContent='📤 결과 제출하기'; }
+}
+
+/* ── 시작 ──────────────────────────────────────────────── */
+go('home');
+</script>
+</body>
+</html>
