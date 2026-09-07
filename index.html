@@ -377,6 +377,11 @@ footer{max-width:860px;margin:34px auto 0;padding:14px 16px 0;border-top:1px sol
       <span><b>스피드 퀴즈</b><span>8문항 연습. 고르는 즉시 정답과 해설이 뜹니다.</span></span>
       <span class="badge">제어반</span>
     </button>
+    <button class="mbtn" id="boardBtn" style="grid-column:1/-1">
+      <span class="ic">📽️</span>
+      <span><b>수업 슬라이드 열기</b><span>교실 앞에 띄우는 42장. 요점 → 발문 → 퀴즈 → 정답이 하나씩 열리고, 화면 어디든 바로 판서됩니다.</span></span>
+      <span class="badge">선생님용</span>
+    </button>
     <button class="mbtn exam" data-go="exam" style="grid-column:1/-1">
       <span class="ic">🎯</span>
       <span><b>종합 시험 · 20문항</b><span>푸는 동안 정답을 알려 주지 않습니다. 끝나면 오답노트가 나오고, 결과를 선생님께 제출할 수 있습니다.</span></span>
@@ -454,12 +459,15 @@ footer{max-width:860px;margin:34px auto 0;padding:14px 16px 0;border-top:1px sol
 <div id="toast"></div>
 
 <script src="https://hongyul67-cpu.github.io/links/fx.js"></script>
-<script src="https://hongyul67-cpu.github.io/links/class-mode.js"></script>
 <script src="https://hongyul67-cpu.github.io/links/reset.js"></script>
 <script src="https://hongyul67-cpu.github.io/links/backbar.js"></script>
 <script src="https://hongyul67-cpu.github.io/links/collector.js"
         data-tool="전자 기계 이론 마스터" data-max-num="35"></script>
 <script src="https://hongyul67-cpu.github.io/links/rank.js" data-tool="전자 기계 이론" data-pace="class"></script>
+
+<!-- 수업 슬라이드 — 원고는 이 저장소, 화면은 links 공용 하나 -->
+<script src="lesson.js"></script>
+<script src="https://hongyul67-cpu.github.io/links/board-pro.js"></script>
 
 <script>
 /* ═══════════════════════════════════════════════════════════
@@ -901,6 +909,19 @@ function go(where){
 }
 document.addEventListener('click',function(ev){
   var b=ev.target.closest('[data-go]'); if(b) go(b.getAttribute('data-go'));
+});
+
+/* ── 수업 슬라이드 — 원고는 lesson.js, 화면은 links/board-pro.js ── */
+document.addEventListener('click',function(ev){
+  if(!ev.target.closest('#boardBtn')) return;
+  if(!window.BoardPro||!window.MENU){ toast('수업 슬라이드를 불러오는 중입니다'); return; }
+  BoardPro.open({
+    title:'📽️ 전자 기계 이론 · 수업 슬라이드',
+    sub:'요점 → <b>발문</b> → 퀴즈 → 정답을 하나씩 엽니다. 화면 어디든 바로 판서됩니다.<br>'+
+        '요점 속 <b>파란 빈칸</b>은 눌러야 답이 보입니다.',
+    menu:window.MENU,
+    fig:window.figOf
+  });
 });
 
 /* ── 홈 ─────────────────────────────────────────────────── */
