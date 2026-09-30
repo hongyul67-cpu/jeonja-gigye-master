@@ -18,306 +18,9 @@
 'use strict';
 
 /* ═════════ 그림 ═════════
-   뷰어 배경이 어두우므로 선과 글자를 밝은 색으로 씁니다. */
-var C = { ln:'#8fa6c4', tx:'#e6eefb', dm:'#9db0cb', bl:'#7cc6ff', ye:'#ffd166',
-          gr:'#4ade80', bg:'#16202e', bg2:'#1d2b3e' };
-
-/* 그림 높이를 묶는 껍데기.
-   이것이 없으면 그림이 세로로 커져서 요점 마지막 줄이 아래 도구바에 가린다
-   (1366×768 에서 확인). 뷰어는 공용이라 고치지 않고 원고 쪽에서 묶는다.
-   퀴즈 단계에서 뷰어가 그림을 20vh 로 줄이므로(#bp-in.compact) 그때는
-   같이 줄여 준다 — 안 그러면 그림 위쪽이 잘린다. */
-(function () {
-  var st = document.createElement('style');
-  st.textContent =
-    /* 높이는 vh 로 직접 묶는다. max-height:100% 는 부모 높이가 auto 라 풀리지 않는다 */
-    '.bp-fig .jg-fig{display:flex;align-items:center;justify-content:center;width:100%}' +
-    '.bp-fig .jg-fig svg{max-width:100%;max-height:30vh;width:auto;height:auto}' +
-    /* 퀴즈 단계에서 뷰어가 .bp-fig 를 20vh 로 묶는다. 그 안쪽 여백(10px×2)과
-       테두리까지 빼 주지 않으면 그림 위아래가 몇 px 잘린다. */
-    '#bp-in.compact .bp-fig .jg-fig svg{max-height:calc(20vh - 24px)}';
-  document.head.appendChild(st);
-})();
-
-function svg(w, h, inner) {
-  return '<div class="jg-fig"><svg viewBox="0 0 ' + w + ' ' + h + '" xmlns="http://www.w3.org/2000/svg" ' +
-    'font-family="Malgun Gothic, sans-serif">' +
-    '<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">' +
-    '<path d="M0 0 L10 5 L0 10 z" fill="' + C.bl + '"/></marker></defs>' + inner + '</svg></div>';
-}
-function t(x, y, s, sz, fill, anc) {
-  return '<text x="' + x + '" y="' + y + '" font-size="' + (sz || 19) + '" fill="' + (fill || C.tx) +
-    '" text-anchor="' + (anc || 'middle') + '">' + s + '</text>';
-}
-function box(x, y, w, h, fill, stroke) {
-  return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="12" fill="' +
-    (fill || C.bg) + '" stroke="' + (stroke || C.ln) + '" stroke-width="2"/>';
-}
-function ln(x1, y1, x2, y2, col, dash) {
-  return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="' + (col || C.ln) +
-    '" stroke-width="2"' + (dash ? ' stroke-dasharray="6 5"' : '') + '/>';
-}
-function arrow(x1, y1, x2, y2, col) {
-  return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="' + (col || C.bl) +
-    '" stroke-width="3" marker-end="url(#ah)"/>';
-}
-function dot(x, y, r, col) {
-  return '<circle cx="' + x + '" cy="' + y + '" r="' + (r || 6) + '" fill="' + (col || C.ye) + '"/>';
-}
-
-/* 네모를 화살표로 이어 놓은 흐름도 — 도구의 「신호 흐름」 화면과 같은 언어 */
-function flow(items, cap) {
-  var n = items.length, W0 = 940, pad = 14,
-      bw = Math.floor((W0 - pad * (n - 1) - 20) / n), y = 44, bh = 96, out = '';
-  items.forEach(function (it, i) {
-    var x = 10 + i * (bw + pad);
-    out += box(x, y, bw, bh, it.hi ? C.bg2 : C.bg, it.hi ? C.bl : C.ln);
-    out += t(x + bw / 2, y + 42, it.a, 22, it.hi ? C.bl : C.tx);
-    if (it.b) out += t(x + bw / 2, y + 72, it.b, 16, C.dm);
-    if (i < n - 1) out += arrow(x + bw + 1, y + bh / 2, x + bw + pad - 1, y + bh / 2);
-  });
-  if (cap) out += t(W0 / 2, 26, cap, 17, C.dm);
-  return svg(W0, 160, out);
-}
-
-var FIG = {
-
-/* Ⅰ — 전자 기계의 네 덩어리 */
-구성: function () {
-  return flow([
-    { a:'센서',        b:'눈 · 코 · 입', hi:1 },
-    { a:'제어 장치',   b:'뇌',           hi:1 },
-    { a:'액추에이터',  b:'근육',         hi:1 },
-    { a:'기계와 기구', b:'뼈 · 인대',    hi:1 }
-  ], '정보  →  전기 신호  →  동력  →  유용한 일');
-},
-
-/* Ⅰ — 자동문으로 본 흐름 */
-자동문: function () {
-  return flow([
-    { a:'사람 접근',  b:'바깥 정보' },
-    { a:'근접 센서',  b:'감지', hi:1 },
-    { a:'제어 장치',  b:'판단', hi:1 },
-    { a:'전동기',     b:'동력', hi:1 },
-    { a:'문이 열림',  b:'일' }
-  ], '전자 기계는 언제나 이 차례로 일한다');
-},
-
-/* Ⅱ — 4절 링크 기구 */
-링크: function () {
-  var o = t(400, 40, '가장 기본이 되는 기구 — 회전을 왕복으로 바꾼다', 20, C.tx);
-  o += ln(120, 215, 620, 215, C.dm, 1);
-  o += '<path d="M120 215 L200 95" stroke="' + C.ye + '" stroke-width="7" fill="none"/>';
-  o += '<path d="M200 95 L520 125" stroke="' + C.gr + '" stroke-width="7" fill="none"/>';
-  o += '<path d="M520 125 L620 215" stroke="' + C.bl + '" stroke-width="7" fill="none"/>';
-  o += dot(120, 215, 9, C.tx) + dot(200, 95, 9, C.tx) + dot(520, 125, 9, C.tx) + dot(620, 215, 9, C.tx);
-  o += t(370, 245, '고정 링크 (프레임)', 18, C.dm);
-  o += t(60, 82, '크랭크', 19, C.ye, 'start');
-  o += t(345, 82, '연결대 (커넥팅 로드)', 19, C.gr);
-  o += t(636, 108, '레버', 19, C.bl, 'start');
-  o += t(700, 170, '링크 4개 · 조인트 4개', 18, C.dm, 'start');
-  o += t(700, 202, '자유도 = 1', 20, C.ye, 'start');
-  return svg(940, 260, o);
-},
-
-/* Ⅱ — 연속 운동과 간헐 운동 */
-운동: function () {
-  var o = box(10, 20, 440, 232) + t(230, 54, '연속 운동 기구', 22, C.gr);
-  o += '<circle cx="130" cy="150" r="50" fill="none" stroke="' + C.ln + '" stroke-width="3"/>';
-  o += '<circle cx="330" cy="150" r="50" fill="none" stroke="' + C.ln + '" stroke-width="3"/>';
-  o += '<path d="M96 114 A50 50 0 0 1 160 104" fill="none" stroke="' + C.gr + '" stroke-width="3" marker-end="url(#ah)"/>';
-  o += '<path d="M296 114 A50 50 0 0 1 360 104" fill="none" stroke="' + C.gr + '" stroke-width="3" marker-end="url(#ah)"/>';
-  o += t(130, 158, '원동절', 17, C.dm) + t(330, 158, '종동절', 17, C.dm);
-  o += t(230, 234, '원동절이 계속 돌면 종동절도 계속 돈다', 17, C.dm);
-
-  o += box(480, 20, 450, 232) + t(705, 54, '간헐 운동 기구', 22, C.ye);
-  var cx = 610, cy = 152, i, a, p = '';
-  for (i = 0; i < 8; i++) {
-    a = i * Math.PI / 4;
-    p += '<path d="M' + (cx + 50 * Math.cos(a)).toFixed(1) + ' ' + (cy + 50 * Math.sin(a)).toFixed(1) +
-      ' L' + (cx + 50 * Math.cos(a + 0.45)).toFixed(1) + ' ' + (cy + 50 * Math.sin(a + 0.45)).toFixed(1) +
-      ' L' + (cx + 32 * Math.cos(a + 0.45)).toFixed(1) + ' ' + (cy + 32 * Math.sin(a + 0.45)).toFixed(1) + '"' +
-      ' fill="none" stroke="' + C.ln + '" stroke-width="3"/>';
-  }
-  o += p + '<circle cx="' + cx + '" cy="' + cy + '" r="32" fill="none" stroke="' + C.ln + '" stroke-width="3"/>';
-  o += '<path d="M700 106 L662 142" stroke="' + C.ye + '" stroke-width="6"/>' + dot(700, 106, 8, C.ye);
-  o += t(752, 140, '멈춤 · 운동 ·', 18, C.ye, 'start') + t(752, 168, '멈춤 · 운동', 18, C.ye, 'start');
-  o += t(705, 234, '캠 · 래칫 · 제네바 기구', 17, C.dm);
-  return svg(940, 262, o);
-},
-
-/* Ⅱ — 커플링 네 가지 */
-커플링: function () {
-  function panel(x, ttl, draw, sub) {
-    return box(x, 40, 215, 192) + t(x + 107, 72, ttl, 19, C.bl) + draw(x) + t(x + 107, 208, sub, 15, C.dm);
-  }
-  var o = t(470, 26, '축과 축을 잇는 네 가지 — 두 축이 어떻게 놓였는가로 나뉜다', 18, C.dm);
-  o += panel(10, '고정 커플링', function (x) {
-    return ln(x + 25, 150, x + 95, 150, C.tx) + ln(x + 120, 150, x + 190, 150, C.tx) +
-      box(x + 95, 132, 25, 36, C.bg2, C.ye);
-  }, '두 축이 일직선');
-  o += panel(240, '플렉시블 커플링', function (x) {
-    return ln(x + 25, 146, x + 92, 146, C.tx) + ln(x + 126, 156, x + 190, 156, C.tx) +
-      '<path d="M' + (x + 92) + ' 146 q9 -13 17 3 q9 16 17 7" fill="none" stroke="' + C.gr + '" stroke-width="5"/>';
-  }, '진동 · 충격을 완화');
-  o += panel(470, '올덤 커플링', function (x) {
-    return ln(x + 25, 128, x + 95, 128, C.tx) + ln(x + 120, 174, x + 190, 174, C.tx) +
-      box(x + 95, 116, 25, 70, C.bg2, C.ye);
-  }, '평행하게 어긋난 두 축');
-  o += panel(700, '유니버설 커플링', function (x) {
-    return ln(x + 25, 126, x + 105, 154, C.tx) + ln(x + 105, 154, x + 190, 126, C.tx) + dot(x + 105, 154, 8, C.ye);
-  }, '한 점에서 교차하는 두 축');
-  return svg(940, 242, o);
-},
-
-/* Ⅱ — 기어와 피니언 */
-기어: function () {
-  function wheel(cx, cy, r, n, col) {
-    var s = '', i, a, ri = r - 14;
-    for (i = 0; i < n; i++) {
-      a = i * 2 * Math.PI / n;
-      s += '<line x1="' + (cx + ri * Math.cos(a)).toFixed(1) + '" y1="' + (cy + ri * Math.sin(a)).toFixed(1) +
-        '" x2="' + (cx + r * Math.cos(a)).toFixed(1) + '" y2="' + (cy + r * Math.sin(a)).toFixed(1) +
-        '" stroke="' + col + '" stroke-width="7"/>';
-    }
-    return s + '<circle cx="' + cx + '" cy="' + cy + '" r="' + ri + '" fill="none" stroke="' + col + '" stroke-width="3"/>' +
-      '<circle cx="' + cx + '" cy="' + cy + '" r="9" fill="' + col + '"/>';
-  }
-  var o = t(470, 34, '돌기(이)를 낸 2개 이상의 회전체가 맞물려 동력을 전달한다', 19, C.tx);
-  o += wheel(300, 160, 100, 20, C.bl) + wheel(474, 160, 62, 13, C.ye);
-  o += t(300, 292, '기어 — 큰 쪽', 20, C.bl) + t(490, 292, '피니언 — 작은 쪽', 20, C.ye);
-  o += t(700, 136, '이가 맞물려 있어', 18, C.dm, 'start') + t(700, 166, '미끄럼이 없다', 18, C.gr, 'start') +
-       t(700, 196, '→ 속도비가 정확하다', 18, C.gr, 'start');
-  return svg(940, 305, o);
-},
-
-/* Ⅱ — 축 배치로 나눈 기어 */
-축배치: function () {
-  function panel(x, ttl, draw, ex) {
-    return box(x, 40, 296, 202) + t(x + 148, 74, ttl, 21, C.bl) + draw(x) + t(x + 148, 222, ex, 15, C.dm);
-  }
-  var o = t(470, 26, '두 축이 어떻게 놓였는가로 기어를 나눈다', 18, C.dm);
-  o += panel(10, '평행', function (x) {
-    return ln(x + 60, 122, x + 240, 122, C.tx) + ln(x + 60, 176, x + 240, 176, C.tx) +
-      dot(x + 150, 122, 7) + dot(x + 150, 176, 7);
-  }, '스퍼 · 헬리컬 · 헤링본 · 내접 · 랙과 피니언');
-  o += panel(322, '교차', function (x) {
-    return ln(x + 72, 104, x + 190, 184, C.tx) + ln(x + 224, 104, x + 190, 184, C.tx) + dot(x + 190, 184, 8);
-  }, '베벨 · 스파이럴 베벨 · 크라운 · 마이터');
-  o += panel(634, '어긋남', function (x) {
-    return ln(x + 60, 112, x + 240, 112, C.tx) + ln(x + 150, 192, x + 150, 134, C.tx) +
-      ln(x + 150, 134, x + 150, 120, C.dm, 1) + dot(x + 150, 112, 7);
-  }, '웜 · 하이포이드 · 나사(스크루) · 페이스');
-  return svg(940, 252, o);
-},
-
-/* Ⅱ — 나사 각부의 명칭 */
-나사: function () {
-  var o = t(470, 40, '나사는 회전 운동을 직선 운동으로 바꾼다', 19, C.tx);
-  var i, x0 = 130, pit = 82, y = 180, amp = 46, p = 'M' + x0 + ' ' + y;
-  for (i = 0; i < 7; i++) p += ' L' + (x0 + pit * i + pit / 2) + ' ' + (y - amp) + ' L' + (x0 + pit * (i + 1)) + ' ' + y;
-  o += '<path d="' + p + '" fill="none" stroke="' + C.tx + '" stroke-width="3"/>';
-  o += ln(70, y, 780, y, C.dm, 1) + ln(70, y - amp, 780, y - amp, C.dm, 1);
-  o += ln(x0 + pit / 2, 104, x0 + pit * 1.5, 104, C.ye) +
-       ln(x0 + pit / 2, 96, x0 + pit / 2, 112, C.ye) + ln(x0 + pit * 1.5, 96, x0 + pit * 1.5, 112, C.ye);
-  o += t(x0 + pit, 90, '피치', 19, C.ye);
-  o += t(x0 + pit * 4, 104, '리드 = 줄 수 × 피치', 19, C.gr);
-  o += t(x0 + pit * 2.5, y - amp - 12, '나사산', 18, C.bl);
-  o += t(x0 + pit * 4, y + 28, '나사골', 18, C.bl);
-  o += t(792, y - amp + 6, '바깥지름', 18, C.dm, 'start') + t(792, y + 6, '골지름', 18, C.dm, 'start');
-  return svg(940, 232, o);
-},
-
-/* Ⅱ — 판 캠 */
-캠: function () {
-  var o = t(470, 32, '캠 — 곡면으로 회전을 직선으로 바꾼다', 19, C.tx);
-  o += '<ellipse cx="270" cy="200" rx="116" ry="70" fill="none" stroke="' + C.bl + '" stroke-width="4"/>';
-  o += dot(270, 200, 9, C.tx) + t(270, 258, '캠 (원동절)', 17, C.dm);
-  o += ln(270, 130, 270, 66, C.ye) + box(246, 50, 48, 22, C.bg2, C.ye);
-  o += t(270, 40, '종동절', 18, C.ye);
-  o += arrow(340, 108, 340, 68, C.ye) + arrow(376, 68, 376, 108, C.ye);
-  o += t(470, 132, '평면 캠 — 판 캠 · 직동 캠 · 정면 캠', 19, C.gr, 'start');
-  o += t(470, 172, '입체 캠 — 원통 · 경사판 · 원뿔 · 구면 · 단면 캠', 19, C.gr, 'start');
-  o += t(470, 212, '판 캠은 속도가 빨라지면 종동절이 이탈한다', 17, C.dm, 'start');
-  o += t(470, 248, '입체 캠은 공간을 적게 차지해 소형 기계에 쓴다', 17, C.dm, 'start');
-  return svg(940, 278, o);
-},
-
-/* Ⅱ — 바로걸기와 엇걸기 */
-벨트: function () {
-  function pul(cx, cy, r) {
-    return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + C.ln + '" stroke-width="3"/>' +
-      dot(cx, cy, 6, C.dm);
-  }
-  var o = box(10, 34, 450, 218) + t(235, 66, '바로걸기 (평행걸기)', 21, C.gr);
-  o += pul(115, 162, 50) + pul(345, 162, 50);
-  o += ln(115, 112, 345, 112, C.gr) + ln(115, 212, 345, 212, C.gr);
-  o += '<path d="M82 132 A50 50 0 0 1 142 118" fill="none" stroke="' + C.gr + '" stroke-width="3" marker-end="url(#ah)"/>';
-  o += '<path d="M312 132 A50 50 0 0 1 372 118" fill="none" stroke="' + C.gr + '" stroke-width="3" marker-end="url(#ah)"/>';
-  o += t(235, 242, '두 축의 회전 방향이 같다', 17, C.dm);
-
-  o += box(480, 34, 450, 218) + t(705, 66, '엇걸기 (십자걸기)', 21, C.ye);
-  o += pul(585, 162, 50) + pul(815, 162, 50);
-  o += ln(585, 112, 815, 212, C.ye) + ln(585, 212, 815, 112, C.ye);
-  o += '<path d="M552 132 A50 50 0 0 1 612 118" fill="none" stroke="' + C.ye + '" stroke-width="3" marker-end="url(#ah)"/>';
-  o += '<path d="M848 192 A50 50 0 0 0 788 206" fill="none" stroke="' + C.ye + '" stroke-width="3" marker-end="url(#ah)"/>';
-  o += t(705, 242, '두 축의 회전 방향이 반대다', 17, C.dm);
-  return svg(940, 260, o);
-},
-
-/* Ⅱ — 벨트 세 가지의 단면 */
-벨트단면: function () {
-  function panel(x, ttl, draw, sub) {
-    return box(x, 36, 296, 192) + t(x + 148, 70, ttl, 21, C.bl) + draw(x) + t(x + 148, 210, sub, 15, C.dm);
-  }
-  var o = t(470, 24, '풀리와 벨트가 닿는 모양이 서로 다르다', 18, C.dm);
-  o += panel(10, '평벨트', function (x) {
-    return '<rect x="' + (x + 88) + '" y="122" width="120" height="26" rx="4" fill="' + C.bg2 +
-      '" stroke="' + C.tx + '" stroke-width="3"/>' + ln(x + 78, 162, x + 218, 162, C.dm);
-  }, '직사각형 단면 · 마찰력으로 전달');
-  o += panel(322, 'V 벨트', function (x) {
-    return '<path d="M' + (x + 96) + ' 118 L' + (x + 200) + ' 118 L' + (x + 176) + ' 158 L' + (x + 120) +
-      ' 158 z" fill="' + C.bg2 + '" stroke="' + C.ye + '" stroke-width="3"/>' +
-      '<path d="M' + (x + 82) + ' 112 L' + (x + 112) + ' 168 M' + (x + 214) + ' 112 L' + (x + 184) +
-      ' 168" stroke="' + C.dm + '" stroke-width="3" fill="none"/>';
-  }, '풀리 홈에 물려 벗겨지지 않는다');
-  o += panel(634, '타이밍 벨트', function (x) {
-    var s = '<rect x="' + (x + 84) + '" y="116" width="128" height="20" rx="4" fill="' + C.bg2 +
-      '" stroke="' + C.gr + '" stroke-width="3"/>', i;
-    for (i = 0; i < 5; i++) s += '<rect x="' + (x + 92 + i * 24) + '" y="136" width="14" height="16" rx="3" fill="' + C.gr + '"/>';
-    return s + ln(x + 78, 158, x + 218, 158, C.dm);
-  }, '이가 맞물려 미끄럼이 없다');
-  return svg(940, 238, o);
-},
-
-/* Ⅲ — 센서의 구조 */
-센서구조: function () {
-  return flow([
-    { a:'검출부',      b:'물리량을 받아들임', hi:1 },
-    { a:'신호 처리부', b:'받은 신호를 처리',  hi:1 },
-    { a:'출력부',      b:'전기 신호로 내보냄', hi:1 }
-  ], '센서는 세 부분으로 나눌 수 있다');
-},
-
-/* Ⅳ — 공압 실린더 */
-실린더: function () {
-  function tube(x, y) {
-    return box(x, y, 250, 78, C.bg, C.ln) + '<rect x="' + (x + 250) + '" y="' + (y + 31) +
-      '" width="92" height="16" fill="' + C.tx + '"/>';
-  }
-  var o = box(10, 32, 450, 224) + t(235, 64, '단동 실린더', 21, C.bl);
-  o += tube(40, 112) + '<rect x="112" y="114" width="18" height="74" fill="' + C.ye + '"/>';
-  o += '<path d="M134 151 q11 -20 22 0 q11 20 22 0 q11 -20 22 0 q11 20 22 0" fill="none" stroke="' + C.gr + '" stroke-width="3"/>';
-  o += arrow(58, 151, 100, 151, C.bl);
-  o += t(235, 228, '한쪽으로만 공기 · 돌아올 때는 스프링', 17, C.dm);
-
-  o += box(480, 32, 450, 224) + t(705, 64, '복동 실린더', 21, C.bl);
-  o += tube(510, 112) + '<rect x="596" y="114" width="18" height="74" fill="' + C.ye + '"/>';
-  o += arrow(528, 151, 584, 151, C.bl) + arrow(748, 151, 692, 151, C.gr);
-  o += t(705, 228, '양쪽 모두 공기 · 나갈 때도 들어올 때도 힘을 낸다', 17, C.dm);
-  return svg(940, 266, o);
-}
-};
+   그림은 figs.js(배우기 카드와 같은 그림)에 있다. 슬라이드의 fig:'키' 는 figs.js 의 키다.
+   2026-09-30 그림10 — 원래 여기 있던 어두운 바탕 그림 13종을 figs.js 로 옮겨 흰 종이 · 폭 480 으로 다시 그렸다.
+   그림 높이는 공용 뷰어(board-pro)가 38vh 로 묶고 퀴즈 단계에서 줄여 준다. */
 
 /* ═════════ 슬라이드 42장 ═════════ */
 var U1 = 'Ⅰ. 전자 기계',
@@ -385,7 +88,7 @@ var LESSON = [
   anso:['고장 해결에 시간과 비용이 든다','초기 투자 비용이 크다','일자리가 줄어든다','늘 같은 조건이라 불량이 줄어든다'], ansa:3,
   anse:'늘 같은 조건으로 만들어 불량이 줄어드는 것은 <b>품질 향상</b>, 곧 장점입니다.' },
 
-{ u:U1, t:'생산 자동화의 전자 기계 기술',
+{ u:U1, t:'생산 자동화의 전자 기계 기술', figq:1, fig:'cnc흐름', cap:'도면 → 코드값 → 명령대로 절삭',
   pts:[
     '<b>수치 제어 공작 기계</b> — 형상 · 치수 · 가공 순서와 조건을 {{코드값}}으로 입력하면 그대로 절삭한다',
     '예) CNC 선반 · 머시닝 센터 · CNC 밀링 · CNC 조각기',
@@ -408,7 +111,7 @@ var LESSON = [
   anso:['운동을 전달하거나 변환하는 것만을 목적으로 한다','반드시 전기로 움직인다','부품 하나로만 이루어진다','외부 에너지를 받아 유용한 일을 한다'], ansa:0,
   anse:'기구는 운동의 <b>전달 · 변환</b>만 맡습니다. 유용한 일까지 해내면 기계입니다.' },
 
-{ u:U2, t:'기계가 되기 위한 세 조건',
+{ u:U2, t:'기계가 되기 위한 세 조건', figq:1, fig:'기계기구', cap:'에너지를 받아 유용한 일을 해야 기계다',
   pts:[
     '① 저항력이 있는 물체(부품)로 이루어져 있을 것',
     '② 각 부분이 {{한정된 상대 운동}}을 할 것',
@@ -428,7 +131,7 @@ var LESSON = [
   anso:['크랭크','연결대','고정 링크','레버'], ansa:2,
   anse:'움직이지 않고 나머지를 붙들고 있는 링크가 <b>고정 링크</b>입니다.' },
 
-{ u:U2, t:'기계 운동 다섯 가지',
+{ u:U2, t:'기계 운동 다섯 가지', fig:'절대상대', cap:'누가 · 어디서 보느냐에 따라 운동이 달라 보인다',
   pts:[
     '<b>절대 운동</b> — 움직이지 않는 고정된 위치에서 바라보는 운동',
     '<b>상대 운동</b> — {{움직이는}} 특정 물체를 기준으로 바라보는 운동',
@@ -440,7 +143,7 @@ var LESSON = [
   anso:['절대 운동','평면 운동','구면 운동','나선 운동'], ansa:3,
   anse:'회전하면서 동시에 축 방향으로 나아가므로 <b>나선 운동</b>입니다.' },
 
-{ u:U2, t:'스칼라와 벡터',
+{ u:U2, t:'스칼라와 벡터', figq:1, fig:'벡터', cap:'크기만 vs 크기 + 방향',
   pts:[
     '<b>스칼라</b> — 방향을 따지지 않고 {{크기}}만으로 나타내는 물리량. 예) 질량 · 길이 · 시간 · 부피',
     '<b>벡터</b> — 크기와 {{방향}}을 모두 써서 나타내는 물리량. 예) 힘 · 변위 · 속도 · 가속도',
@@ -450,7 +153,7 @@ var LESSON = [
   anso:['부피','가속도','힘','속도'], ansa:0,
   anse:'부피는 크기만 있으면 됩니다. 힘 · 속도 · 가속도는 방향까지 있어야 하므로 벡터입니다.' },
 
-{ u:U2, t:'차원과 자유도',
+{ u:U2, t:'차원과 자유도', figq:1, fig:'자유도', cap:'직선 1 · 평면 3 · 공간 6',
   pts:[
     '1차원은 직선 위 — 자유도 1 · 2차원은 평면 위 — 자유도 {{3}} · 3차원은 공간 — 자유도 {{6}}',
     '자유도 계산식 — <b>F = 3(E − 1) − 2P₁ − 1P₂</b>',
@@ -471,7 +174,7 @@ var LESSON = [
   anso:['기어 전동','랙과 피니언','마찰차 전동','벨트 전동'], ansa:1,
   anse:'랙(직선 기어)과 피니언(작은 기어)이 맞물려 회전을 직선으로 바꿉니다.' },
 
-{ u:U3, t:'간헐 운동 기구', fig:'운동', cap:'래칫 — 한쪽으로 한 칸씩만 돈다',
+{ u:U3, t:'간헐 운동 기구', fig:'운동', cap:'제네바 기구 — 원동절은 계속 돌고 종동절은 멈췄다 돈다',
   pts:[
     '원동절이 <b>연속</b>으로 회전해도 종동절은 {{끊어지는}} 운동을 한다',
     '일정한 시간 간격으로 <b>정지</b>와 <b>운동</b>을 되풀이할 때 쓴다',
@@ -502,7 +205,7 @@ var LESSON = [
   anso:['올덤 커플링','유니버설 커플링','고정 커플링','플렉시블 커플링'], ansa:0,
   anse:'올덤 커플링은 원심력에 의해 추가 <b>하중</b>이 가해집니다.' },
 
-{ u:U3, t:'클러치 — 필요할 때만 붙이는 연결',
+{ u:U3, t:'클러치 — 필요할 때만 붙이는 연결', fig:'클러치', cap:'붙이면 전달, 떼면 끊김',
   pts:[
     '<b>클러치</b> — 동력을 전달할 때만 {{단속적}}으로 연결하는 축이음',
     '커플링은 늘 붙어 있고, 클러치는 붙였다 뗐다 할 수 있다',
@@ -577,7 +280,7 @@ var LESSON = [
   anso:['1 mm','2 mm','4 mm','8 mm'], ansa:2,
   anse:'리드 = 줄 수 × 피치 = 2 × 2 = <b>4 mm</b> 입니다.' },
 
-{ u:U5, t:'나사의 종류',
+{ u:U5, t:'나사의 종류', figq:1, fig:'나사종류', cap:'나사산의 모양이 쓰임을 가른다',
   pts:[
     '<b>체결용 나사</b> — 기계 요소의 결합 · 조립 · 고정에 쓴다. {{삼각(미터)}} 나사 · 유니파이 나사',
     '<b>운동용 나사</b> — 회전 운동을 {{직선}} 운동으로 바꾸어 동력을 전달한다',
@@ -628,7 +331,7 @@ var LESSON = [
   anso:['평벨트','V 벨트','타이밍 벨트','로프'], ansa:2,
   anse:'타이밍 벨트만 <b>이가 맞물립니다</b>. 나머지는 마찰로 전달하므로 미끄럼이 있습니다.' },
 
-{ u:U6, t:'체인 전동',
+{ u:U6, t:'체인 전동', figq:1, fig:'체인', cap:'스프로킷에 롤러 체인을 감는다',
   pts:[
     '<b>스프로킷</b>(체인 기어) — 이가 형성된 바퀴. 여기에 체인을 감아 힘을 전달한다',
     '두 축 사이 거리가 {{멀어}} 기어 전동이 어려운 경우에 쓴다',
@@ -639,7 +342,7 @@ var LESSON = [
   anso:['타이밍 체인','평 체인','V 체인','사일런트 체인'], ansa:3,
   anse:'사일런트(silent)는 「조용한」이라는 뜻입니다. 대신 비싸고 무겁습니다.' },
 
-{ u:U6, t:'로프 전동',
+{ u:U6, t:'로프 전동', figq:1, fig:'거리', cap:'두 축이 멀수록 로프 쪽으로',
   pts:[
     '로프를 홈이 파인 풀리에 걸어 동력을 전달한다. V 벨트와 비슷하다',
     'V 벨트와 달리 {{10 m}} 이상의 먼 거리까지 전달할 수 있다',
@@ -683,7 +386,7 @@ var LESSON = [
   anso:['압전 소자','홀 소자','광센서','가스 센서'], ansa:3,
   anse:'냄새는 기체 성분이므로 <b>가스 센서</b>가 맡습니다.' },
 
-{ u:U7, t:'센서의 성능 특성 다섯',
+{ u:U7, t:'센서의 성능 특성 다섯', figq:1, fig:'성능', cap:'감도 · 분해능 · 드리프트',
   pts:[
     '<b>감도</b> — 입력 신호의 변화에 따라 {{출력}} 신호가 얼마나 변하는지의 비율',
     '<b>분해능</b> — 센서가 검출할 수 있는 {{최소}} 변화량',
@@ -695,7 +398,7 @@ var LESSON = [
   anso:['드리프트','선택도','잡음','분해능'], ansa:0,
   anse:'안정성이 떨어져 출력이 서서히 변하는 것을 <b>드리프트</b>라고 합니다.' },
 
-{ u:U7, t:'물리 센서와 화학 센서',
+{ u:U7, t:'물리 센서와 화학 센서', fig:'광센서', cap:'광센서 — 차단과 반사',
   pts:[
     '감지 대상이 <b>물리량</b>이면 물리 센서, <b>성분</b>이면 화학 센서다',
     '물리 센서 — 가속도계({{관성}} 센서) · 온도 센서 · 광센서 · 자기 센서',
@@ -738,7 +441,7 @@ var LESSON = [
   anso:['솔레노이드','단동 실린더','복동 실린더','요동형 액추에이터'], ansa:2,
   anse:'복동(複動)은 「두 번 움직인다」는 뜻으로, 양쪽 모두 공기로 움직입니다.' },
 
-{ u:U8, t:'유압 액추에이터',
+{ u:U8, t:'유압 액추에이터', figq:1, fig:'회로', cap:'쓴 기름은 탱크로 되돌아온다',
   pts:[
     '{{유압 펌프}}가 압력을 만들어 작동유를 실린더로 보낸다',
     '실린더가 직선 운동을 하며 일을 수행한다 — 유압 에너지가 {{기계적 에너지}}로 바뀐다',
@@ -748,7 +451,7 @@ var LESSON = [
   anso:['솔레노이드','서미스터','압축기','유압 펌프'], ansa:3,
   anse:'유압은 <b>유압 펌프</b>가, 공압은 압축기(컴프레서)가 압력을 만듭니다.' },
 
-{ u:U8, t:'구동 에너지원별 분류',
+{ u:U8, t:'구동 에너지원별 분류', fig:'구동원', cap:'공기 · 기름 · 전기',
   pts:[
     '<b>공압식</b> — 직선: 공압 실린더(단동 · 복동) / 회전: 공압 모터 · {{요동형}} 액추에이터',
     '<b>유압식</b> — 직선: 유압 실린더 / 회전: 유압 모터 · 요동형 액추에이터',
@@ -758,7 +461,7 @@ var LESSON = [
   anso:['솔레노이드','서보 모터','DC 모터','스텝 모터'], ansa:0,
   anse:'솔레노이드는 전자석의 힘으로 철심을 <b>직선</b>으로 당깁니다. 나머지 셋은 회전형입니다.' },
 
-{ u:U8, t:'공압 장치의 장점과 단점',
+{ u:U8, t:'공압 장치의 장점과 단점', figq:1, fig:'압축성', cap:'공기는 눌리면 줄어든다',
   pts:[
     '장점 — 공기는 어디에나 있어 얻기 쉽고, 압축성이 좋아 {{저장(축압)}}이 쉽다',
     '장점 — 인화 · 폭발 위험이 없어 화재 염려가 적고, 쓴 공기는 대기로 내보내 배관이 간단하다',
@@ -770,7 +473,7 @@ var LESSON = [
   anso:['정확한 위치 제어가 어렵다','공기를 구하기 어렵다','배관이 매우 복잡하다','화재 위험이 크다'], ansa:0,
   anse:'공기는 <b>압축성</b>이 있어 눌리므로 정확한 위치 · 속도 제어가 어렵습니다.' },
 
-{ u:U8, t:'유압 장치의 장점과 단점',
+{ u:U8, t:'유압 장치의 장점과 단점', figq:1, fig:'압축성', cap:'기름은 거의 줄지 않는다 → 큰 힘 · 정확한 제어',
   pts:[
     '장점 — 작은 장치로 {{큰 힘}}을 얻고, 무단 변속이 가능해 속도 제어가 정확하다',
     '장점 — 과부하 방지가 쉽고 진동이 적으며, 기름이 {{윤활}} 작용을 겸한다',
@@ -796,8 +499,10 @@ MENU.push({ icon:'⬜', wide:true, title:'빈 칠판', desc:'슬라이드 없이
             run:{ kind:'blank' } });
 
 W.LESSON = LESSON;
-W.FIG = FIG;
 W.MENU = MENU;
-W.figOf = function (s) { return (s && s.fig && FIG[s.fig]) ? FIG[s.fig]() : ''; };
+W.figOf = function (s) {
+  /* figq:1 — 슬라이드 빈칸 · 퀴즈 정답이 그림 글자로 먼저 보이지 않게 정답 이름표(ans)를 ? 로 가린다 */
+  return (s && s.fig && W.FIG && W.FIG.has && W.FIG.has(s.fig)) ? W.FIG.svgOf(s.fig, s.figq ? { labels: false } : undefined) : '';
+};
 
 })(window);
