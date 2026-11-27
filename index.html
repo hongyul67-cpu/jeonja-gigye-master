@@ -402,7 +402,7 @@ footer{max-width:860px;margin:34px auto 0;padding:14px 16px 0;border-top:1px sol
 <!-- ══════════ 배우기 ══════════ -->
 <main id="learn" class="wrap screen hide">
   <div class="crumb">
-    <button class="back" data-go="home">← 홈</button>
+    <button class="back" data-go="home">🏠 처음으로</button>
     <span class="ttl">배우기</span>
     <span class="sub" id="learnCount"></span>
   </div>
@@ -411,7 +411,7 @@ footer{max-width:860px;margin:34px auto 0;padding:14px 16px 0;border-top:1px sol
 
 <main id="topic" class="wrap screen hide">
   <div class="crumb">
-    <button class="back" data-go="learn">← 목록</button>
+    <button class="back" data-go="learn">← 뒤로</button>
     <span class="ttl" id="topicTtl"></span>
   </div>
   <div class="sheet" id="topicSheet"></div>
@@ -424,7 +424,7 @@ footer{max-width:860px;margin:34px auto 0;padding:14px 16px 0;border-top:1px sol
 <!-- ══════════ 신호 사슬 ══════════ -->
 <main id="chain" class="wrap screen hide">
   <div class="crumb">
-    <button class="back" data-go="home">← 홈</button>
+    <button class="back" data-go="home">🏠 처음으로</button>
     <span class="ttl">신호 사슬</span>
     <span class="sub" id="chainNo"></span>
   </div>
@@ -435,7 +435,7 @@ footer{max-width:860px;margin:34px auto 0;padding:14px 16px 0;border-top:1px sol
 <!-- ══════════ 짝 맞추기 ══════════ -->
 <main id="sheet" class="wrap screen hide">
   <div class="crumb">
-    <button class="back" data-go="home">← 홈</button>
+    <button class="back" data-go="home">🏠 처음으로</button>
     <span class="ttl">짝 맞추기</span>
     <span class="sub" id="sheetNo"></span>
   </div>
@@ -447,7 +447,7 @@ footer{max-width:860px;margin:34px auto 0;padding:14px 16px 0;border-top:1px sol
 <!-- ══════════ 스피드 퀴즈 · 종합시험 ══════════ -->
 <main id="quiz" class="wrap screen hide">
   <div class="crumb">
-    <button class="back" id="quizBack">← 홈</button>
+    <button class="back" id="quizBack">🏠 처음으로</button>
     <span class="ttl" id="quizTtl"></span>
     <span class="sub" id="quizSub"></span>
   </div>
@@ -1100,7 +1100,7 @@ function chainResult(){
   $('chainBox').innerHTML='<div class="result"><div class="big'+(pct>=80?'':pct>=50?' mid':' low')+'">'+pct+'</div>'+
     '<div class="sub">'+CHAINS.length+'개 사슬 중 '+ok+'개를 첫 번에 맞혔습니다</div>'+
     '<div id="submitAnchor"></div></div>';
-  $('chainRow').innerHTML='<button class="btn ghost" data-go="home">홈으로</button><button class="btn go" data-go="chain">다시 하기</button>';
+  $('chainRow').innerHTML='<button class="btn ghost" data-go="home">🏠 처음으로</button><button class="btn go" data-go="chain">다시 하기</button>';
   if(window.Rank) Rank.award(pct,{mode:'신호 사슬'});
   if(window.FX) FX.banner({title:'신호 사슬 완료',sub:pct+'점',stars:FX.starsFor?FX.starsFor(pct):3});
   attachSubmit($('submitAnchor'),{
@@ -1202,7 +1202,7 @@ function matchResult(){
   $('sheetTabs').innerHTML='';
   $('sheetBox').innerHTML='<div class="result"><div class="big'+(pct>=80?'':pct>=50?' mid':' low')+'">'+pct+'</div>'+
     '<div class="sub">'+MATCH.length+'세트 중 '+ok+'세트를 첫 번에 맞혔습니다</div><div id="submitAnchor"></div></div>';
-  $('sheetRow').innerHTML='<button class="btn ghost" data-go="home">홈으로</button><button class="btn go" data-go="sheet">다시 하기</button>';
+  $('sheetRow').innerHTML='<button class="btn ghost" data-go="home">🏠 처음으로</button><button class="btn go" data-go="sheet">다시 하기</button>';
   if(window.Rank) Rank.award(pct,{mode:'짝 맞추기'});
   if(window.FX) FX.banner({title:'짝 맞추기 완료',sub:pct+'점',stars:FX.starsFor?FX.starsFor(pct):3});
   attachSubmit($('submitAnchor'),{
@@ -1330,7 +1330,7 @@ function quizResult(){
     h+='<div class="empty">틀린 문제가 없습니다. 완벽합니다.</div>';
   }
   $('quizBox').innerHTML=h;
-  $('quizRow').innerHTML='<button class="btn ghost" data-go="home">홈으로</button>'+
+  $('quizRow').innerHTML='<button class="btn ghost" data-go="home">🏠 처음으로</button>'+
     '<button class="btn go" data-go="'+(Q.mode==='exam'?'exam':'speed')+'">다시 풀기</button>';
 
   if(window.Rank) Rank.award(pct,{mode:Q.mode==='exam'?'종합 시험':'스피드 퀴즈'});
